@@ -4,24 +4,17 @@
     <title><%= site.title %></title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
-    <style>
-      body {
-        font-family: Monospace;
-        background-color: #f0f0f0;
-        margin: 0px;
-        overflow: hidden;
-      }
-    </style>
+    <link rel="stylesheet" href="/css/styles.css">
+
+    <script>
+      //"Global" variables
+      var widthDivider = 1.0;
+      var heightDivider = 1.0;
+    </script>
 
   </head>
   <body>
     <script id="vertexShader" type="x-shader/x-vertex">
-
-      // void main() {
-      //   vec4 mvPosition = modelViewMatrix * vec4( position, 1.0 );
-      //   gl_PointSize = 4.0 * ( 150.0 / -mvPosition.z );
-      //   gl_Position = projectionMatrix * mvPosition;
-      // }
 
       varying vec2 vUv;
 
@@ -147,18 +140,11 @@
         float b = 5.0 * pnoise( 0.05 * position + vec3( 2.0 * time ), vec3( 100.0 ) );
         float displacement = - noise + b;
 
-        
-
-        // vec3 newPosition = position + forceDir * abs(sin(time));
-
         vec3 newPosition = position + forceDir * displacement;
 
         vec4 mvPosition = modelViewMatrix * vec4( newPosition, 1.0 );
         gl_PointSize = 4.0 * ( 150.0 / -mvPosition.z );
         gl_Position = projectionMatrix * mvPosition;
-
-
-        // gl_Position = projectionMatrix * modelViewMatrix * vec4( newPosition, 1.0 );
 
       }
 
@@ -169,8 +155,6 @@
       varying vec2 vUv;
       uniform float time;
       uniform vec2 u_resolution;
-      uniform vec3 fogColor;
-      uniform float fogDensity;
 
 
       //Circel using the dot product
@@ -194,29 +178,25 @@
 
         gl_FragColor = vec4(color);
 
-        // #ifdef USE_FOG
-
-        //     float depth = gl_FragCoord.z / gl_FragCoord.w;
-         
-        //     // float fogFactor = smoothstep( fogNear, fogFar, depth );
-        //     // gl_FragColor = vec4(mix( gl_FragColor.rgb, fogColor, fogFactor ),1.0);
-
-        //     float fogFactor = smoothstep( 1.0, 1000.0, depth);
-        //     gl_FragColor = mix( gl_FragColor, vec4( fogColor, gl_FragColor.w ), fogFactor );
-        //     // gl_FragColor = vec4(fogFactor,fogFactor,fogFactor,1.0);
-
-        //     // gl_FragColor = (col,gl_FragColor.w);
-            
-        // #endif
-
 
       }
     </script>
+    <%- include('partials/drawer') %> 
+    <%- include('partials/navicon') %> 
+    
+    <div id="sketch"></div>
+
 
 
     <script src="js/three.js"></script>
     <script src="js/STLLoader.js"></script>
     <script src="js/stats.min.js"></script>
     <script src="js/sketch.js"></script>
+    <script src="js/nav.js"></script>
+
+
+
+    <style>@font-face{font-family:'SinkSans',Helvetica,Arial,sans-serif;src:url(https://sink.sexy/wp-content/themes/sink/css/fonts/sinksans.woff) format('woff')}#sv2b:hover div{transform:translate(0,0)!important</style>
+<a id="sv2b" href="https://sink.sexy/residencies/november-2018" style="position:fixed!important;top:0!important;left:0!important;margin:0!important;display:block!important;z-index:99999999!important;width:100vw!important;height:51px!important;overflow:hidden!important;cursor:pointer!important;padding:0!important"><div style="position:fixed!important;top:0!important;left:0!important;margin:0!important;width:100vw!important;height:51px!important;background:#fff!important;transform:translate(0,-100%);transition:transform .2s ease-out!important"><span style="position:absolute!important;font-family:'SinkSans',Helvetica Neue,Helvetica,sans-serif!important;font-size:22px!important;line-height:27px!important;font-weight:400!important;font-style:normal!important;text-decoration:none!important;letter-spacing:.013em!important;color:#000!important;-webkit-font-smoothing:antialiased!important;-webkit-tap-highlight-color:transparent!important;text-transform:uppercase!important;margin:13px 0 0 19px!important">← SINK.SEXY</span></div></a>
   </body>
 </html>

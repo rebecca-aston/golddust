@@ -5,15 +5,12 @@ var INTERSECTED;
 var radius = 100, theta = 0;
 var startTime = 0;
 var time;
+
 var uniforms = {
       time: { value: 1.0 },
       u_resolution: { type: "v2", value: new THREE.Vector2() },
       u_mouse: { type: "v2", value: new THREE.Vector2() },
-      u_light: { type: "v3", value: new THREE.Vector3() },
-      fogColor:    { type: "c", value: 0x0 },
-      fogNear:     { type: "f", value: 0 },
-      fogFar:      { type: "f", value: 0 },
-      fogDensity:  { type: "f", value: 0 }
+      u_light: { type: "v3", value: new THREE.Vector3() }
     };
 
 init();
@@ -21,21 +18,15 @@ animate();
 
 function loadSTL(path){
 
-      // ASCII file
+
       var loader = new THREE.STLLoader();
       loader.load( path, function ( geometry ) {
-        // var material = new THREE.MeshPhongMaterial( { color: 0xff5533, specular: 0x111111, shininess: 200 } );
-       
+
+        //Gold Canon
         var material = new THREE.MeshStandardMaterial( {
-            // map: imgTexture,
-            // bumpMap: imgTexture,
-            // bumpScale: bumpScale,
             color: 0xc5a50e,
             metalness: 0.5,
             roughness: 0.5
-            // envMap: index % 2 === 0 ? null : hdrCubeRenderTarget.texture
-            //flatshading
-            //wireframe
           } );
 
         var mesh = new THREE.Mesh( geometry, material );
@@ -61,7 +52,6 @@ function loadSTL(path){
 
           positions.push(x,y,z);
 
-
         }
 
         CanonPointGeom.addAttribute( 'position', new THREE.Float32BufferAttribute( positions, 3 ) );
@@ -74,8 +64,6 @@ function loadSTL(path){
           uniforms: uniforms,
           vertexShader: document.getElementById( 'vertexShader' ).textContent,
           fragmentShader: document.getElementById( 'fragmentShader' ).textContent
-          // fog: true
-          // lights: true //need a bunch more stuff from shaderChunk and shaderLib
         } );
         
         
@@ -89,7 +77,7 @@ function loadSTL(path){
 }
 
 function init() {
-  container = document.createElement( 'div' );
+  container = document.getElementById("sketch");
   document.body.appendChild( container );
 
 
@@ -108,33 +96,20 @@ function init() {
 
   uniforms.u_resolution.value.x = 1;
   uniforms.u_resolution.value.y = 1;
-  // uniforms.fogColor.value = scene.fog.color;
-  // uniforms.fogDensity.value = scene.fog.density;
 
 
-  // var plane = new THREE.Mesh(
-  //   new THREE.PlaneBufferGeometry( window.innerWidth, window.innerWidth ),
-  //   new THREE.MeshPhongMaterial( { color: 0x01044B } )
-  // );
-  // plane.rotation.x = -Math.PI/2;
-  // plane.position.y = -15;
-  // plane.name = "ground";
-  // scene.add( plane );
-
-
-  //Initialize Geometry
-  // var geometry = new THREE.BoxBufferGeometry( 20, 20, 20 );
-  // var object = new THREE.Mesh( geometry, new THREE.MeshLambertMaterial( { color: Math.random() * 0xffffff } ) );
-  // object.position.x = 0;
-  // object.position.y = 0;
-  // object.position.z = 0;
-  // scene.add( object );
+  //Look into this! then can run point system after load
+  //And make a loading animation
+  // var manager = new THREE.LoadingManager();
+  //       manager.onProgress = function ( item, loaded, total ) {
+  //         console.log( item, loaded, total );
+  //       };
+  
 
   //CANON
   loadSTL('models/canonDecimated03.stl');
 
   
-
   //For mouse interaction detection
   raycaster = new THREE.Raycaster();
   renderer = new THREE.WebGLRenderer();
@@ -159,6 +134,7 @@ function animate(timestamp) {
   uniforms.time.value = (time - startTime) / 100000;
   render();
   stats.update();
+
 }
 
 function render() {
@@ -201,9 +177,9 @@ function removeObject(name) {
 
 //Events
 function onWindowResize() {
-  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.aspect = window.innerWidth*widthDivider / window.innerHeight;
   camera.updateProjectionMatrix();
-  renderer.setSize( window.innerWidth, window.innerHeight );
+  renderer.setSize( window.innerWidth, window.innerHeight*heightDivider);
 }
 
 function onDocumentMouseMove( event ) {
@@ -219,6 +195,7 @@ function onDocumentMouseMove( event ) {
 function onClicked(event){
   if(INTERSECTED) {
     //Open popup with information
+    //TODO expand this out so that you can fire different functions
     scene.add( CanonPoints );
     removeObject("canonObj");
     startTime = time;
