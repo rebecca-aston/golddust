@@ -1,32 +1,84 @@
 html, body {
   margin: 0;
   padding: 0;
+  font-size: 10px;
 }
 
 body {
   color: #333;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+  
 }
 
 h1, h2, h3, h4, h5, h6 {
-  color:#159957;
+  font-family: "Times New Roman", Times, serif;
 }
 
-.nav{
+p {
+  font-size: 1.4rem;
+  line-height: 2em;
+}
+
+p a{
+  text-decoration: none;
+  color:#333;
+  display: inline-block;
+}
+
+p a:hover{
+  color:#a78d00;
+}
+
+p a:after{
+  content:" ";
+  display: block;
+  border-bottom: 2px solid #a78d00;
+  width: 100%;
+}
+
+h1{
+  margin-top: 4rem;
+  font-size: 2.5rem;
+}
+
+h3{
+  font-size: 1.8rem;
+  margin:.5em 0;
+}
+
+nav{
     position: relative;
     text-align: center;
-    height: 40px;
+    height: 60px;
+    padding:10px;
     background-color: white;
 }
 
-.nav a{
-  padding:3px 5px;
+nav a{
+  position: relative;
+  padding:0 5px;
   cursor:pointer;
+  font-size: 1.6rem;
+
 }
 
-.nav a:hover{
-  color:#C4991D;
+nav a.inactive,
+nav a.inactive:hover{
+  color:#c7c7c7;
+  cursor: default;
 }
+
+
+nav a.active,
+nav a:hover{
+  color:#a78d00;
+}
+
+nav a.active{
+  cursor: default;
+}
+
+
 
 .header {
   background-color: #159957;
@@ -46,12 +98,27 @@ h1, h2, h3, h4, h5, h6 {
 #nav-button{
   position:fixed;
   bottom:0;
+  right:0;
   width:100px;
   height:100px;
   margin:20px;
   background-color: #C4991D;
-  z-index:5;
+  z-index:20;
   cursor:pointer;
+}
+
+#state-information{
+  position: fixed;
+  bottom:0;
+  margin: 50px 2.5%;
+  width: 15%;
+  z-index:20;
+}
+
+#state-information p{
+  margin: 0;
+  font-size: 1.2rem;
+  line-height: 1.5rem;
 }
 
 #drawer{
@@ -60,8 +127,8 @@ h1, h2, h3, h4, h5, h6 {
   width:100%;
   background-color: #f3f3f0;
   top:100%;
-  z-index:2;
-  margin-top: -30px;
+  z-index:18;
+  margin-top: -40px;
 }
 
 
@@ -75,6 +142,53 @@ h1, h2, h3, h4, h5, h6 {
 
 @-webkit-keyframes slidein { from {top:100%;} to {top:55%;} }
         @keyframes slidein { from {top:100%;} to {top:55%;} }
+
+
+.lds-dual-ring:after {
+    content: " ";
+    display: inline-block;
+    position: absolute;
+    top: -40px;
+    left: 50%;
+    width: 20px;
+    height: 20px;
+    margin: 1px -10px;
+    border-radius: 50%;
+    border: 3px solid #a78d00;
+    border-color: #a78d00 transparent #a78d00 transparent;
+    animation: lds-dual-ring 1.2s linear infinite;
+}
+@keyframes lds-dual-ring {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+
+.centered{
+  width:60%;
+  margin:50px auto 150px auto;
+  text-align: left;
+}
+
+body #word{
+  position:fixed;
+  overflow: scroll;
+  height:100%;
+  width:100%;
+  background-color: white;
+  opacity: 0;
+  z-index: -10;
+  transition:opacity .5s, z-index 1s;
+}
+
+body[state="word"] #word{
+  opacity:1;
+  z-index: 10;
+}
 
 
 /*code {

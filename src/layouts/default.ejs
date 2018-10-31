@@ -7,19 +7,19 @@
     <link rel="stylesheet" href="/css/styles.css">
 
     <script>
-      //"Global" variables
-      var widthDivider = 1.0;
-      var heightDivider = 1.0;
+       //"Global" variables
+       var widthDivider = 1.0;
+       var heightDivider = 1.0;
     </script>
 
   </head>
-  <body>
+  <body state="word">
     <script id="vertexShader" type="x-shader/x-vertex">
 
       varying vec2 vUv;
-
       varying float noise;
       uniform float time;
+      uniform float u_noffset;
 
       // https://github.com/stegu/webgl-noise/blob/master/src/classicnoise3D.glsl
       vec3 mod289(vec3 x)
@@ -131,19 +131,22 @@
 
       void main() {
 
-      vUv = uv;
+        vUv = uv;
+        vec3 newPosition = position;
 
-        vec3 forceDir = position - (position + vec3(0.0,1.0,0.0)); 
+        if(u_noffset != 0.0){
+          vec3 forceDir = position - (position + vec3(0.0,u_noffset,0.0)); 
 
-        // add time to the noise parameters so it's animated
-        noise = 10.0 *  -.10 * turbulence( .5 * forceDir + time );
-        float b = 5.0 * pnoise( 0.05 * position + vec3( 2.0 * time ), vec3( 100.0 ) );
-        float displacement = - noise + b;
+          noise = 10.0 *  -.10 * turbulence( .5 * forceDir + time );
+          float b = 5.0 * pnoise( 0.05 * position + vec3( 2.0 * time ), vec3( 100.0 ) );
+          float displacement = - noise + b;
 
-        vec3 newPosition = position + forceDir * displacement;
+          newPosition = position + forceDir * displacement;
+        }
+
 
         vec4 mvPosition = modelViewMatrix * vec4( newPosition, 1.0 );
-        gl_PointSize = 4.0 * ( 150.0 / -mvPosition.z );
+        gl_PointSize = 3.0 * ( 150.0 / -mvPosition.z );
         gl_Position = projectionMatrix * mvPosition;
 
       }
@@ -155,6 +158,8 @@
       varying vec2 vUv;
       uniform float time;
       uniform vec2 u_resolution;
+      uniform float u_noffset;
+      uniform vec3 u_color;
 
 
       //Circel using the dot product
@@ -172,7 +177,9 @@
 
         vec2 cp = vec2(0.5,0.5);
 
-        color = vec4(0.65,.55,.1,circle(st,cp,0.5));
+        // color = vec4(0.65,.55,.1,circle(st,cp,0.5));
+        // vec3 test = vec3(1.0,1.0,1.0);
+        color = vec4(u_color,circle(st,cp,0.5));
 
         if ( color.a < 0.2 ) discard;
 
@@ -181,9 +188,11 @@
 
       }
     </script>
-    <%- include('partials/drawer') %> 
-    <%- include('partials/navicon') %> 
     
+    <%- include('partials/words') %>
+    <%- include('partials/stateInfo') %> 
+    <%- include('partials/drawer') %>    
+
     <div id="sketch"></div>
 
 
@@ -192,7 +201,6 @@
     <script src="js/STLLoader.js"></script>
     <script src="js/stats.min.js"></script>
     <script src="js/sketch.js"></script>
-    <script src="js/nav.js"></script>
 
 
 

@@ -7,19 +7,19 @@
     <link rel="stylesheet" href="/css/styles.css">
 
     <script>
-      //"Global" variables
-      var widthDivider = 1.0;
-      var heightDivider = 1.0;
+       //"Global" variables
+       var widthDivider = 1.0;
+       var heightDivider = 1.0;
     </script>
 
   </head>
-  <body>
+  <body state="word">
     <script id="vertexShader" type="x-shader/x-vertex">
 
       varying vec2 vUv;
-
       varying float noise;
       uniform float time;
+      uniform float u_noffset;
 
       // https://github.com/stegu/webgl-noise/blob/master/src/classicnoise3D.glsl
       vec3 mod289(vec3 x)
@@ -131,19 +131,22 @@
 
       void main() {
 
-      vUv = uv;
+        vUv = uv;
+        vec3 newPosition = position;
 
-        vec3 forceDir = position - (position + vec3(0.0,1.0,0.0)); 
+        if(u_noffset != 0.0){
+          vec3 forceDir = position - (position + vec3(0.0,u_noffset,0.0)); 
 
-        // add time to the noise parameters so it's animated
-        noise = 10.0 *  -.10 * turbulence( .5 * forceDir + time );
-        float b = 5.0 * pnoise( 0.05 * position + vec3( 2.0 * time ), vec3( 100.0 ) );
-        float displacement = - noise + b;
+          noise = 10.0 *  -.10 * turbulence( .5 * forceDir + time );
+          float b = 5.0 * pnoise( 0.05 * position + vec3( 2.0 * time ), vec3( 100.0 ) );
+          float displacement = - noise + b;
 
-        vec3 newPosition = position + forceDir * displacement;
+          newPosition = position + forceDir * displacement;
+        }
+
 
         vec4 mvPosition = modelViewMatrix * vec4( newPosition, 1.0 );
-        gl_PointSize = 4.0 * ( 150.0 / -mvPosition.z );
+        gl_PointSize = 3.0 * ( 150.0 / -mvPosition.z );
         gl_Position = projectionMatrix * mvPosition;
 
       }
@@ -155,6 +158,8 @@
       varying vec2 vUv;
       uniform float time;
       uniform vec2 u_resolution;
+      uniform float u_noffset;
+      uniform vec3 u_color;
 
 
       //Circel using the dot product
@@ -172,7 +177,9 @@
 
         vec2 cp = vec2(0.5,0.5);
 
-        color = vec4(0.65,.55,.1,circle(st,cp,0.5));
+        // color = vec4(0.65,.55,.1,circle(st,cp,0.5));
+        // vec3 test = vec3(1.0,1.0,1.0);
+        color = vec4(u_color,circle(st,cp,0.5));
 
         if ( color.a < 0.2 ) discard;
 
@@ -181,24 +188,47 @@
 
       }
     </script>
-    <section id="drawer">
-	<div class="nav">
-		<a>shape</a>
-		<a>scan</a>
-		<a>mesh</a>
-		<a>points</a>
+    
+    <section id="word">
+	<div class="centered">
+		<h1>The Cannon</h2>
+
+		<p>Join me as I gather different pieces in an exploration of Akan Gold Weights and the gold dust they were used to weigh. </p>
+
+		<p>I begin this residency with one of the cannon weights from the British Museum collection. Of the many different types and forms of gold weights, there are only a few that were made as a result of European contact. I therefore chose it to start with because its form and symbolism allows me to critique Britain's involvement in this history. To trace the story from the early days of European trade, to the British colonization of the Gold Coast, to their eventual abolishment of the currency system and additionally the British Museum’s acquisition, archival and digitization of these gold weights. </p>
+
+		<p>I also chose it as a starting point in order to frame my own voice. In this work, as a white Zimbabwean artist of British colonial dissent, I pick up some of the tools—technology, algorithms, mathematical models, the anthropological, the archival, the museological—in order to attempt to dismantle the house from within. In response to what could be seen as an appropriative selection of these scans, I want to clearly state my object of study as colonial ways of thinking. In approaching a topic that can only be unbalanced with my voice alone, I am open to dialog.</p>
+
+		<p>Over the course of the month I will be collating information about Akan Gold Weights. I will survey this history and the media within which it is encoded using invented and borrowed models (in the scientific and philosophical sense of the word). As part of this work I will be thinking about some of the vocabulary and materials of 3D scans, narrative, history and the archive. The "dust" section will be my laboratory, everything that proceeds it will be vocabulary and theory which I will add to over the month. If in the beginning there is only a skimming of the surface, I hope by the end of the month I will have a deeper network of information collected here. </p> 
+
+
+        <!--<h1>Glossary</h2>
+
+        <p> The bulk of the historical research will be collated in the "dust" section. I include here a glossary that may or may not grow.</p>-->
 	</div>
+</section>
+    <div id="state-information">
+	<h3> 1. (fore)word </h3>
+	<p> First, we start with words: definitions, meanings, intentions.</p>
+</div> 
+    <section id="drawer">
+	<nav>
+		<a state="word" class="active">word</a>
+		<!--<a state="shape" class="inactive lds-dual-ring">shape</a>-->
+		<a state="scan" class="inactive lds-dual-ring">scan</a>
+		<a state="points" class="inactive">vertex</a>
+		<a state="mesh" class="inactive">mesh</a>
+		<a state="material" class="inactive">material</a>
+		<a state="flow" class="inactive">dust</a>
+	</nav>
 	<div class="divider">
 		LOREM IPSUM COLOR
 	</div>
 	<div class="divider scrollable-box">
 
 	</div>
-</section> 
-    <div id="nav-button">
-	
-</div> 
-    
+</section>    
+
     <div id="sketch"></div>
 
 
@@ -207,7 +237,6 @@
     <script src="js/STLLoader.js"></script>
     <script src="js/stats.min.js"></script>
     <script src="js/sketch.js"></script>
-    <script src="js/nav.js"></script>
 
 
 
