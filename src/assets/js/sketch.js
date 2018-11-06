@@ -1,5 +1,5 @@
 var container, stats;
-var camera, scene, raycaster, renderer;
+var camera, scene, raycaster, renderer,ambientLight;
 var mouse = new THREE.Vector2();
 var INTERSECTED;
 var radius = 100, theta = 0;
@@ -8,6 +8,7 @@ var time;
 // var objects = [];
 var currentState = "word"; //serving as init state too
 var currentObject = "canonObj";
+animateCamera = false;
 var objs = [];
 var mats = [];
 var objStates = {
@@ -21,17 +22,16 @@ var objStates = {
     title:"shape",
     subtitle:"On a two dimensional xy plane, is it a pictograph, symbol or icon?",
     obj:"",
-    postprocess:"outline",
     mat:"MeshStandardMaterial",
     matstate:{
-      color: 0xffffff,
+      color: 0x000000,
       metalness: 0,
       roughness: 1.0,
       wireframe: false
     }
   },
   scan:{
-    order: 2,
+    order: 3,
     title:"3D scan",
     subtitle:"What is a 3D scan? Here is the scan from the <a target='blank' href='https://www.myminifactory.com/object/3d-print-gold-weight-in-the-form-of-a-mounted-european-style-cannon-at-the-british-museum-london-20886'>British Museum</a>.",
     obj:"",
@@ -44,7 +44,7 @@ var objStates = {
           }
     },
     points:{
-      order: 3,
+      order: 4,
       title:"vertex",
       subtitle:"A vertex is an xyz coordinate in three dimensional Cartesian space.",
       obj:"",
@@ -52,20 +52,20 @@ var objStates = {
       matstate:{u_noffset:0,u_color:new THREE.Vector3(0.4,0.4,0.4)}
     },
     mesh:{
-    order: 4,
+    order: 5,
     title:"mesh",
     subtitle:"Here the vertices are joined together using triangulation to create a mesh.",
       obj:"",
       mat:"MeshStandardMaterial",
       matstate:{
-            color: 0x333333,
-            metalness: 0.5,
+            color: 0x9f9f9f,
+            metalness: 0.0,
             roughness: 0.5,
             wireframe: true
           }
         },
     material:{
-      order: 5,
+      order: 6,
       title:"material",
       subtitle:"Gold: shaders and physical matter.",
       obj:"",
@@ -78,7 +78,7 @@ var objStates = {
         }
     },
     flow:{
-      order: 6,
+      order: 7,
       title:"dust",
       subtitle:"How to rearrange the points? This will become my laboratory.",
       obj:"",
@@ -112,15 +112,6 @@ function loadSTL(path,manager){
       var loader = new THREE.STLLoader(manager);
       loader.load( path, function ( geometry ) {
 
-        // //White
-        // var base = new THREE.MeshStandardMaterial( {
-        //     color: 0xffffff,
-        //     metalness: 0,
-        //     roughness: 1.0
-        //   } );
-
-        // base.name = "MeshStandardMaterial";
-        // mats.push(base);
 
         //Gold 
         var gold = new THREE.MeshStandardMaterial( {
@@ -251,7 +242,26 @@ function changeThreeState(state){
   if(state in objStates){
     addObject(objStates[state].obj,objStates[state].mat,objStates[state].matstate);
   }
-  //Grab the associated state material
+
+  if(state == "shape"){
+    camera.position.x = 0;
+    camera.position.z = 99;
+    animateCamera = false;
+    ambientLight.intensity = 1.0;
+    widthDivider = 2.0;
+    heightDivider = 0.5;
+    camera.aspect = window.innerWidth*widthDivider / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize( window.innerWidth, window.innerHeight*heightDivider);
+  }else{
+    animateCamera = true;
+    ambientLight.intensity = 0.2;
+    widthDivider = 1.0;
+    heightDivider = 1.0;
+    camera.aspect = window.innerWidth*widthDivider / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize( window.innerWidth, window.innerHeight*heightDivider);
+  }
 
   //Play the camera animation if there is one
   //Either using tweens??
@@ -288,8 +298,8 @@ function init() {
   light1.position.set( -1, -1, -1 ).normalize();
   scene.add( light1 );
 
-  var light2 = new THREE.AmbientLight( 0xffffff, .2 );
-  scene.add( light2 );
+  ambientLight = new THREE.AmbientLight( 0xffffff, .2 );
+  scene.add( ambientLight );
 
   uniforms.u_resolution.value.x = 1;
   uniforms.u_resolution.value.y = 1;
@@ -349,10 +359,14 @@ function animate(timestamp) {
 }
 
 function render() {
-  theta += 0.1;
-  camera.position.x = radius * Math.sin( THREE.Math.degToRad( theta ) );
-  // camera.position.y = radius * Math.sin( THREE.Math.degToRad( theta ) );
-  camera.position.z = radius * Math.cos( THREE.Math.degToRad( theta ) );
+
+  if(animateCamera){
+    theta += 0.1;
+    camera.position.x = radius * Math.sin( THREE.Math.degToRad( theta ) );
+    // camera.position.y = radius * Math.sin( THREE.Math.degToRad( theta ) );
+    camera.position.z = radius * Math.cos( THREE.Math.degToRad( theta ) );
+  }
+
 
   camera.lookAt( scene.position );
   camera.updateMatrixWorld();
@@ -465,6 +479,7 @@ function changeState(event){
     if(state != "word"){
       changeThreeState(state);
     }
+
   }
 
 

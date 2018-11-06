@@ -17,6 +17,7 @@ h1, h2, h3, h4, h5, h6 {
 p {
   font-size: 1.4rem;
   line-height: 2em;
+  -webkit-text-size-adjust: none;
 }
 
 p a{
@@ -52,6 +53,10 @@ nav{
     height: 60px;
     padding:10px;
     background-color: white;
+    white-space: nowrap;
+    /*overflow-x:scroll;*/
+    /*overflow-y:visible!important;*/
+    overflow: auto;
 }
 
 nav a{
@@ -59,12 +64,13 @@ nav a{
   padding:0 5px;
   cursor:pointer;
   font-size: 1.6rem;
-
+  margin-left: 0;
+  transition:margin-left .3s;
 }
 
 nav a.inactive,
 nav a.inactive:hover{
-  color:#c7c7c7;
+  color:#dadada;
   cursor: default;
 }
 
@@ -118,7 +124,7 @@ nav a.active{
 #state-information p{
   margin: 0;
   font-size: 1.2rem;
-  line-height: 1.5rem;
+  line-height: 1.3em;
 }
 
 #drawer{
@@ -127,7 +133,7 @@ nav a.active{
   width:100%;
   background-color: #f3f3f0;
   top:100%;
-  z-index:18;
+  z-index:25;
   margin-top: -40px;
 }
 
@@ -143,16 +149,19 @@ nav a.active{
 @-webkit-keyframes slidein { from {top:100%;} to {top:55%;} }
         @keyframes slidein { from {top:100%;} to {top:55%;} }
 
-
+.lds-dual-ring{
+  margin-left: 40px;
+}
 .lds-dual-ring:after {
     content: " ";
     display: inline-block;
     position: absolute;
-    top: -40px;
+    top: 50%;
     left: 50%;
     width: 20px;
     height: 20px;
-    margin: 1px -10px;
+    margin-top: -11px;
+    margin-left: -55px;
     border-radius: 50%;
     border: 3px solid #a78d00;
     border-color: #a78d00 transparent #a78d00 transparent;
@@ -177,12 +186,13 @@ nav a.active{
 body #word{
   position:fixed;
   overflow: scroll;
+  -webkit-overflow-scrolling: touch;
   height:100%;
   width:100%;
   background-color: white;
   opacity: 0;
   z-index: -10;
-  transition:opacity .5s, z-index 1s;
+  transition:opacity .3s, z-index .5s;
 }
 
 body[state="word"] #word{
@@ -200,4 +210,32 @@ body[state="word"] #word{
   word-break: normal;
   white-space: pre;
 }*/
+
+
+@media screen and (max-width: 900px) {
+  .centered {
+    width:80%;
+  }
+  #state-information{
+    width:90%;
+    margin: 50px 0;
+    padding: 0 5%;
+    background-color: white;
+  }
+  #state-information h3{
+    font-size: 1.9rem;
+  }
+  #state-information p{
+    font-size: 1.3rem;
+  }
+  #drawer{
+    margin-top: -50px;
+  }
+  nav{
+    padding-top: 15px;
+  }
+  nav a{
+    font-size: 1.8rem;
+  }
+}
 

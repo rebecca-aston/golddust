@@ -199,7 +199,7 @@
 
 		<p>I also chose it as a starting point in order to frame my own voice. In this work, as a white Zimbabwean artist of British colonial dissent, I pick up some of the tools—technology, algorithms, mathematical models, the anthropological, the archival, the museological—in order to attempt to dismantle the house from within. In response to what could be seen as an appropriative selection of these scans, I want to clearly state my object of study as colonial ways of thinking. In approaching a topic that can only be unbalanced with my voice alone, I am open to dialog.</p>
 
-		<p>Over the course of the month I will be collating information about Akan Gold Weights. I will survey this history and the media within which it is encoded using invented and borrowed models (in the scientific and philosophical sense of the word). As part of this work I will be thinking about some of the vocabulary and materials of 3D scans, narrative, history and the archive. The "dust" section will be my laboratory, everything that proceeds it will be vocabulary and theory which I will add to over the month. If in the beginning there is only a skimming of the surface, I hope by the end of the month I will have a deeper network of information collected here. </p> 
+		<p>Over the course of the month I will be collating information about Akan Gold Weights. I will survey this history and the media within which it is encoded using invented and borrowed models (in the scientific and philosophical sense of the word). As part of this work I will be thinking about some of the vocabulary and materials of 3D scans, narrative, history and the archive. The "dust" section will be my laboratory, everything that precedes it will be vocabulary and theory which I will add to over the month. If in the beginning there is only a skimming of the surface, I hope by the end of the month I will have a deeper network of information collected here. </p> 
 
 
         <!--<h1>Glossary</h2>
@@ -214,8 +214,8 @@
     <section id="drawer">
 	<nav>
 		<a state="word" class="active">word</a>
-		<!--<a state="shape" class="inactive lds-dual-ring">shape</a>-->
-		<a state="scan" class="inactive lds-dual-ring">scan</a>
+		<a state="shape" class="inactive lds-dual-ring">shape</a>
+		<a state="scan" class="inactive">scan</a>
 		<a state="points" class="inactive">vertex</a>
 		<a state="mesh" class="inactive">mesh</a>
 		<a state="material" class="inactive">material</a>
@@ -236,6 +236,15 @@
     <script src="js/three.js"></script>
     <script src="js/STLLoader.js"></script>
     <script src="js/stats.min.js"></script>
+
+    <script src="js/shaders/CopyShader.js"></script>
+    <script src="js/postprocessing/EffectComposer.js"></script>
+    <script src="js/postprocessing/MaskPass.js"></script>
+    <script src="js/postprocessing/RenderPass.js"></script>
+    <script src="js/postprocessing/ShaderPass.js"></script>
+    <script src="js/postprocessing/OutlinePass.js"></script>
+    <script src="js/shaders/FXAAShader.js"></script>
+
     <script src="js/sketch.js"></script>
 
 
