@@ -1,5 +1,5 @@
 var container, stats;
-var camera, scene, raycaster, renderer,ambientLight;
+var camera, scene, raycaster, renderer,ambientLight, light, light1;
 var mouse = new THREE.Vector2();
 var INTERSECTED;
 var radius = 100, theta = 0;
@@ -8,7 +8,8 @@ var time;
 // var objects = [];
 var currentState = "word"; //serving as init state too
 var currentObject = "canonObj";
-animateCamera = false;
+var animateCamera = false;
+var fullPageApp = true;
 var objs = [];
 var mats = [];
 var objStates = {
@@ -19,12 +20,12 @@ var objStates = {
   },
   shape:{
     order: 2,
-    title:"shape",
-    subtitle:"On a two dimensional xy plane, is it a pictograph, symbol or icon?",
+    title:"symbol",
+    subtitle:"On a two dimensional xy plane, we see a shape, a pictograph, an icon, a symbol?",
     obj:"",
     mat:"MeshStandardMaterial",
     matstate:{
-      color: 0x000000,
+      color: 0xd0d0d0,
       metalness: 0,
       roughness: 1.0,
       wireframe: false
@@ -244,20 +245,27 @@ function changeThreeState(state){
   }
 
   if(state == "shape"){
-    camera.position.x = 0;
-    camera.position.z = 99;
+    scene.children[3].position.x = 10;
+    camera.position.x = 20;
+    camera.position.z = 110;
     animateCamera = false;
     ambientLight.intensity = 1.0;
-    widthDivider = 2.0;
-    heightDivider = 0.5;
-    camera.aspect = window.innerWidth*widthDivider / window.innerHeight;
+    light.intensity = 0;
+    light1.intensity = 0;
+    fullPageApp = false;
+
+    camera.aspect = window.innerWidth / 400;
     camera.updateProjectionMatrix();
-    renderer.setSize( window.innerWidth, window.innerHeight*heightDivider);
+    renderer.setSize( window.innerWidth, 400);
   }else{
+    scene.children[3].position.x = -10;
     animateCamera = true;
     ambientLight.intensity = 0.2;
-    widthDivider = 1.0;
-    heightDivider = 1.0;
+    light.intensity = 1.0;
+    light1.intensity = 1.0;
+    fullPageApp = true;
+    // widthDivider = 1.0;
+    // heightDivider = 1.0;
     camera.aspect = window.innerWidth*widthDivider / window.innerHeight;
     camera.updateProjectionMatrix();
     renderer.setSize( window.innerWidth, window.innerHeight*heightDivider);
@@ -291,10 +299,10 @@ function init() {
   scene.background = new THREE.Color( 0x01044B );
   scene.background = new THREE.Color( 0xffffff );
   // scene.fog = new THREE.FogExp2( 0xffffff, 0.007 );
-  var light = new THREE.DirectionalLight( 0xffffff, 1 );
+  light = new THREE.DirectionalLight( 0xffffff, 1 );
   light.position.set( 1, 1, 1 ).normalize();
   scene.add( light );
-  var light1 = new THREE.DirectionalLight( 0xffffff, .5 );
+  light1 = new THREE.DirectionalLight( 0xffffff, .5 );
   light1.position.set( -1, -1, -1 ).normalize();
   scene.add( light1 );
 
@@ -408,9 +416,15 @@ function render() {
 
 //Three.js canvas events
 function onWindowResize() {
-  camera.aspect = window.innerWidth*widthDivider / window.innerHeight;
-  camera.updateProjectionMatrix();
-  renderer.setSize( window.innerWidth, window.innerHeight*heightDivider);
+  if(fullPageApp){
+    camera.aspect = window.innerWidth*widthDivider / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize( window.innerWidth, window.innerHeight*heightDivider);
+  }else{
+    camera.aspect = window.innerWidth / 400;
+    camera.updateProjectionMatrix();
+    renderer.setSize( window.innerWidth, 400);
+  }
 }
 
 function onDocumentMouseMove( event ) {
