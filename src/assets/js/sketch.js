@@ -132,7 +132,7 @@ function loadSTL(path,manager){
         mesh.castShadow = true;
         mesh.receiveShadow = true;
 
-        mesh.geometry.setDrawRange(0,drawCount);
+        // mesh.geometry.setDrawRange(0,drawCount);
 
         mesh.name = currentObject;
         objs.push(mesh);
@@ -354,10 +354,10 @@ function render() {
     camera.position.z = radius * Math.cos( THREE.Math.degToRad( theta ) );
   }
 
-  if(typeof scene.children[3] !== 'undefined' && drawCount < scene.children[3].geometry.getAttribute("position").array.length){
-    drawCount += 1;
-    scene.children[3].geometry.setDrawRange(0,drawCount);
-  }
+  // if(typeof scene.children[3] !== 'undefined' && drawCount < scene.children[3].geometry.getAttribute("position").array.length){
+  //   drawCount += 1;
+  //   scene.children[3].geometry.setDrawRange(0,drawCount);
+  // }
 
   camera.lookAt( scene.position );
   camera.updateMatrixWorld();
