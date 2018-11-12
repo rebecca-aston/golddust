@@ -4,6 +4,7 @@ var mouse = new THREE.Vector2();
 var INTERSECTED;
 var radius = 100, theta = 0;
 var startTime = 0;
+var drawCount = 1;
 var time;
 // var objects = [];
 var currentState = "word"; //serving as init state too
@@ -131,6 +132,7 @@ function loadSTL(path,manager){
         mesh.castShadow = true;
         mesh.receiveShadow = true;
 
+        mesh.geometry.setDrawRange(0,drawCount);
 
         mesh.name = currentObject;
         objs.push(mesh);
@@ -139,29 +141,6 @@ function loadSTL(path,manager){
         objStates.scan.obj = mesh.name;
         objStates.mesh.obj = mesh.name;
         objStates.material.obj = mesh.name;
-
-
-        // scene.add( mesh );
-
-        var pointGeom = new THREE.BufferGeometry();
-        var numPoints = mesh.geometry.getAttribute("position").count;
-        var positions = [];
-
-        for(var i = 0; i < numPoints; i++){
-
-          var x = mesh.geometry.getAttribute("position").getX(i);
-          var y = mesh.geometry.getAttribute("position").getY(i);
-          var z = mesh.geometry.getAttribute("position").getZ(i);
-
-          positions.push(x,y,z);
-
-        }
-
-        pointGeom.addAttribute( 'position', new THREE.Float32BufferAttribute( positions, 3 ) );
-        pointGeom.computeBoundingSphere();
-
-
-        // var pointsMaterial = new THREE.PointsMaterial( { size: 1, color: 0xc5a50e} );
 
         var pointsMaterial = new THREE.ShaderMaterial( {
           uniforms: uniforms,
@@ -172,7 +151,7 @@ function loadSTL(path,manager){
         pointsMaterial.name = "pointsMaterial";
         // mats.push(pointsMaterial);
 
-        var points = new THREE.Points( pointGeom, pointsMaterial );
+        var points = new THREE.Points( geometry, pointsMaterial );
         points.position.set( -10, - 5, 0 );
         points.rotation.set( -Math.PI/2, 0, 0 );
 
@@ -375,6 +354,10 @@ function render() {
     camera.position.z = radius * Math.cos( THREE.Math.degToRad( theta ) );
   }
 
+  if(typeof scene.children[3] !== 'undefined' && drawCount < scene.children[3].geometry.getAttribute("position").array.length){
+    drawCount += 1;
+    scene.children[3].geometry.setDrawRange(0,drawCount);
+  }
 
   camera.lookAt( scene.position );
   camera.updateMatrixWorld();
