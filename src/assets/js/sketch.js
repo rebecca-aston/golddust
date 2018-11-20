@@ -163,8 +163,6 @@ function loadSTL(path,manager){
         objStates.points.obj = points.name;
         objStates.flow.obj = points.name;
 
-        
-
         // Handle this better
         cannon = new ScanDistort("cannon");
         cannon.init(container,geometry);

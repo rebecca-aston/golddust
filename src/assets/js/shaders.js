@@ -423,10 +423,10 @@ function getCustomShader(){
           vec4 tmpPos = texture2D( texturePosition, reference ); //the texture plus the texture coordinates
           vec3 pos = tmpPos.xyz;
 
-          vec3 newPosition = mat3( modelMatrix ) * position; 
+          vec3 newPosition = mat3( modelMatrix ) * pos; 
 
           //Add position from texture
-          newPosition += pos;
+          // newPosition += pos;
 
 
           vec4 worldPosition = vec4( newPosition, 1.0 );

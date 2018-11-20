@@ -194,10 +194,22 @@ function ScanDistort(name){
 		  side: THREE.DoubleSide
 		});
 
+
+		  var gold = new THREE.MeshStandardMaterial( {
+            color: 0xa78d00,
+            metalness: 0.5,
+            roughness: 0.5
+          } );
+
 		scanMesh = new THREE.Mesh( geometry, customPhysicalMaterial );
-		scanMesh.rotation.y = Math.PI / 2;
+		// scanMesh.rotation.y = Math.PI / 2;
+		scanMesh.position.set( -10, - 5, 0 );
+        scanMesh.rotation.set( -Math.PI/2, 0, 0 );
 		scanMesh.matrixAutoUpdate = false;
 		scanMesh.updateMatrix();
+
+
+
 
 		scene.add(scanMesh);
 
@@ -206,7 +218,8 @@ function ScanDistort(name){
     function appendCanvas(){
     	activeRender = true;
     	container.appendChild( renderer.domElement );
-		start = performance.now();
+		// start = performance.now();
+		velocityUniforms.u_noffset.value = 1.0;
         animate();
     }
 
@@ -231,59 +244,62 @@ function ScanDistort(name){
 
 		if(!initialized){
 
-		console.log("Init: " + name);
+			console.log("Init: " + name);
 
-		//TODO store a ref to container somehow.
-		//Or just an element to check if in DOM before runnning Animate
+			//TODO store a ref to container somehow.
+			//Or just an element to check if in DOM before runnning Animate
 
-        camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 1, 3000 );
-        camera.position.z = 350;
-        
-        scene = new THREE.Scene();
-        scene.background = new THREE.Color( 0xffffff );
-        scene.fog = new THREE.Fog( 0xffffff, 100, 1000 );
-        
-        var light = new THREE.DirectionalLight( 0xffffff, 1 );
-        light.position.set( 1, 1, 1 ).normalize();
-        scene.add( light );
+	        camera = new THREE.PerspectiveCamera( 70, window.innerWidth / window.innerHeight, 1, 10000 );
+	        camera.position.z = 98.7136265072988;
+	        
+	        scene = new THREE.Scene();
+	        scene.background = new THREE.Color( 0xffffff );
+	        scene.fog = new THREE.Fog( 0xffffff, 100, 1000 );
+	        
+	        var light = new THREE.DirectionalLight( 0xffffff, 1 );
+	        light.position.set( 1, 1, 1 ).normalize();
+	        scene.add( light );
+	        var  light1 = new THREE.DirectionalLight( 0xffffff, .5 );
+			light1.position.set( -1, -1, -1 ).normalize();
+			scene.add( light1 );
 
-        renderer = new THREE.WebGLRenderer();
-        renderer.setPixelRatio( window.devicePixelRatio );
-        renderer.setSize( window.innerWidth, window.innerHeight );
-        // container.appendChild( renderer.domElement );
+	        renderer = new THREE.WebGLRenderer();
+			  renderer.setPixelRatio( window.devicePixelRatio );
+			  renderer.setSize( window.innerWidth, window.innerHeight );
+	        // container.appendChild( renderer.domElement );
 
-        renderer.autoClear = false;  //!!!!!!
+	        renderer.autoClear = false;  //!!!!!!
 
-        cameraOrtho = new THREE.OrthographicCamera(    
-          -400 , // frustum left plane
-          400 , // frustum right plane.
-          400, // frustum top plane.
-          -400 , // frustum bottom plane. 
-          0, // frustum near plane. //Set to 0 so plane is visible
-          1000 // frustum far plane.
-        );
+	        cameraOrtho = new THREE.OrthographicCamera(    
+	          -400 , // frustum left plane
+	          400 , // frustum right plane.
+	          400, // frustum top plane.
+	          -400 , // frustum bottom plane. 
+	          0, // frustum near plane. //Set to 0 so plane is visible
+	          1000 // frustum far plane.
+	        );
 
-        sceneInset = new THREE.Scene();
+	        sceneInset = new THREE.Scene();
 
-        var pGeom = new THREE.PlaneGeometry( 400,400 );
-        var pMat = new THREE.MeshBasicMaterial( {color: 0xffffff});
-        plane = new THREE.Mesh( pGeom, pMat );
-        plane.lookAt( cameraOrtho.position );
-        sceneInset.add(plane);
+	        var pGeom = new THREE.PlaneGeometry( 400,400 );
+	        var pMat = new THREE.MeshBasicMaterial( {color: 0xffffff});
+	        plane = new THREE.Mesh( pGeom, pMat );
+	        plane.lookAt( cameraOrtho.position );
+	        sceneInset.add(plane);
 
-        controls = new THREE.OrbitControls( camera, renderer.domElement );
+	        controls = new THREE.OrbitControls( camera, renderer.domElement );
 
-        // document.addEventListener( 'mousemove', onDocumentMouseMove, false );
-        // document.addEventListener( 'touchstart', onDocumentTouchStart, false );
-        // document.addEventListener( 'touchmove', onDocumentTouchMove, false );
+	        // document.addEventListener( 'mousemove', onDocumentMouseMove, false );
+	        // document.addEventListener( 'touchstart', onDocumentTouchStart, false );
+	        // document.addEventListener( 'touchmove', onDocumentTouchMove, false );
 
-        window.addEventListener( 'resize', onWindowResize, false );
+	        window.addEventListener( 'resize', onWindowResize, false );
 
 
-        initMesh(baseGeometry);
-        initComputeRenderer();
-                
-        initialized = true;
+	        initMesh(baseGeometry);
+	        initComputeRenderer();
+	                
+	        initialized = true;
 
 		}else{
 			console.log("Already initialized: " + name);
@@ -322,7 +338,6 @@ function ScanDistort(name){
           positionUniforms.delta.value = delta;   
           velocityUniforms.time.value = Math.sin(now*0.001);
           velocityUniforms.delta.value = delta;  
-          velocityUniforms.u_noffset.value = 0.9;
 
           scanUniforms.time.value = now;
           scanUniforms.delta.value = delta;
@@ -330,6 +345,10 @@ function ScanDistort(name){
           // velocityUniforms.u_noffset.value = 0.0;
         // }
 
+
+        if(velocityUniforms.u_noffset.value > 0.01){
+        	velocityUniforms.u_noffset.value -= 0.01;
+        }
  
 
         gpuCompute.compute();
@@ -352,13 +371,10 @@ function ScanDistort(name){
 
 	function onWindowResize() {
 
-		windowHalfX = window.innerWidth / 2;
-		windowHalfY = window.innerHeight / 2;
+    	camera.aspect = window.innerWidth/ window.innerHeight;
+    	camera.updateProjectionMatrix();
+    	renderer.setSize( window.innerWidth, window.innerHeight);
 
-		camera.aspect = window.innerWidth / window.innerHeight;
-		camera.updateProjectionMatrix();
-
-		renderer.setSize( window.innerWidth, window.innerHeight );
 
 	}
 
