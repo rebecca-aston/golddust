@@ -203,7 +203,7 @@ function ScanDistort(name){
 
 		scanMesh = new THREE.Mesh( geometry, customPhysicalMaterial );
 		// scanMesh.rotation.y = Math.PI / 2;
-		scanMesh.position.set( -10, - 5, 0 );
+		// scanMesh.position.set( -10, - 5, 0 );
         scanMesh.rotation.set( -Math.PI/2, 0, 0 );
 		scanMesh.matrixAutoUpdate = false;
 		scanMesh.updateMatrix();
@@ -215,11 +215,16 @@ function ScanDistort(name){
 
     } 
 
-    function appendCanvas(){
+    function appendCanvas(camX,camY,camZ){
     	activeRender = true;
     	container.appendChild( renderer.domElement );
 		// start = performance.now();
 		velocityUniforms.u_noffset.value = 1.0;
+		camera.position.x = camX;
+		camera.position.y = camY;
+		camera.position.z = camZ;
+		controls.update();
+		console.log(camX, camZ);
         animate();
     }
 
@@ -250,7 +255,6 @@ function ScanDistort(name){
 			//Or just an element to check if in DOM before runnning Animate
 
 	        camera = new THREE.PerspectiveCamera( 70, window.innerWidth / window.innerHeight, 1, 10000 );
-	        camera.position.z = 98.7136265072988;
 	        
 	        scene = new THREE.Scene();
 	        scene.background = new THREE.Color( 0xffffff );
@@ -364,7 +368,7 @@ function ScanDistort(name){
         renderer.render( scene, camera );
 
         //Orthographic Camera for UI laid over 3D view.
-        renderer.setViewport( 0, 0, 300, 300 );
+        renderer.setViewport( -50, -50, 250, 250 );
         renderer.render( sceneInset, cameraOrtho );
 
 	}

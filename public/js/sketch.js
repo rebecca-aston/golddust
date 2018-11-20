@@ -84,7 +84,7 @@ var objStates = {
     flow:{
       order: 7,
       title:"dust",
-      subtitle:"How to rearrange the points? This will become my laboratory.",
+      subtitle:"The scan has been loaded into a 2D texture, each pixel color (a texel) is the positition data of a vertex. Next I will enter data to morph the mesh using shaders.",
       obj:"",
       mat:"pointsMaterial",
       matstate:{u_noffset:50,u_color:new THREE.Vector3(0.65,0.55,0.1)}
@@ -128,7 +128,7 @@ function loadSTL(path,manager){
         // mats.push(gold);
 
         var mesh = new THREE.Mesh( geometry, gold );
-        mesh.position.set( -10, - 5, 0 );
+        // mesh.position.set( -10, - 5, 0 );
         mesh.rotation.set( -Math.PI/2, 0, 0 );
         mesh.scale.set( 1, 1, 1);
         mesh.castShadow = true;
@@ -154,7 +154,7 @@ function loadSTL(path,manager){
         // mats.push(pointsMaterial);
 
         var points = new THREE.Points( geometry, pointsMaterial );
-        points.position.set( -10, - 5, 0 );
+        // points.position.set( -10, - 5, 0 );
         points.rotation.set( -Math.PI/2, 0, 0 );
 
         points.name = currentObject+"Points";
@@ -223,10 +223,15 @@ function changeThreeState(state){
   //for any animation potentially
   // startTime = time;
 
+
+ if(currentState in objStates){
+    removeObject(objStates[currentState].obj);
+  }
+
   if(state == "flow"){
 
       container.innerHTML = "";
-      cannon.appendCanvas();
+      cannon.appendCanvas(camera.position.x,camera.position.y,camera.position.z);
 
       renderState.state = "flow";
 
@@ -243,11 +248,6 @@ function changeThreeState(state){
       animate();
     }
 
-
-
-    if(currentState in objStates){
-      removeObject(objStates[currentState].obj);
-    }
     
     if(state in objStates){
       addObject(objStates[state].obj,objStates[state].mat,objStates[state].matstate);
@@ -308,6 +308,8 @@ function init() {
 
   //Scene Setup
   camera = new THREE.PerspectiveCamera( 70, window.innerWidth / window.innerHeight, 1, 10000 );
+  camera.position.x = 9.7;
+  camera.position.z = 99.5;
   scene = new THREE.Scene();
   scene.background = new THREE.Color( 0x01044B );
   scene.background = new THREE.Color( 0xffffff );
