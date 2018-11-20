@@ -1,3 +1,4 @@
+var cannon;
 var container, stats;
 var camera, scene, raycaster, renderer,ambientLight, light, light1;
 var mouse = new THREE.Vector2();
@@ -160,6 +161,15 @@ function loadSTL(path,manager){
         
         objStates.points.obj = points.name;
         objStates.flow.obj = points.name;
+
+        
+
+        // Handle this better
+
+        // cannon = new ScanDistort("cannon");
+        // cannon.init(container,geometry);
+        // cannon.initMesh(geometry)
+        // scene.add(cannon.getMesh());
 
       } );
 

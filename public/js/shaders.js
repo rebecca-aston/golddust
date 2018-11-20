@@ -5,8 +5,7 @@
     //    - Base on GDC 2011 – Approximating Translucency for a Fast, Cheap and Convincing Subsurface Scattering Look
     //      https://colinbarrebrisebois.com/2011/03/07/gdc-2011-approximating-translucency-for-a-fast-cheap-and-convincing-subsurface-scattering-look/
     // ------------------------------------------------------------------------------------------ */
-
-    this.uniforms = THREE.UniformsUtils.merge( [
+    var u = THREE.UniformsUtils.merge( [
 
       THREE.UniformsLib[ "common" ],
       THREE.UniformsLib[ "lights" ],
@@ -30,7 +29,7 @@
 
     ] );
 
-    this.fragmentShader = [
+    var f = [
       "#define USE_MAP",
       "#define PHONG",
       "#define TRANSLUCENT",
@@ -168,9 +167,9 @@
 
       "}"
 
-    ].join( "\n" ),
+    ].join( "\n" );
 
-    this.vertexShader = [ //update this with the latest when releasing as template literals not supported.
+    var v = [ //update this with the latest when releasing as template literals not supported.
 
       "varying vec3 vNormal;",
       "varying vec2 vUv;",
@@ -195,12 +194,16 @@
 
       "}",
 
-    ].join( "\n" )
+    ].join( "\n" );
 
 
-    return this;
+    return {
+      uniforms: u,
+      fragmentShader: f,
+      vertexShader: v
+    };
+    
   }
-
 
 
   function getComputeShaders() {
