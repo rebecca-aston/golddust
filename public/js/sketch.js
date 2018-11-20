@@ -8,6 +8,7 @@ var startTime = 0;
 var drawCount = 1;
 var time;
 // var objects = [];
+var renderState = {state:"default"};
 var currentState = "word"; //serving as init state too
 var currentObject = "canonObj";
 var animateCamera = false;
@@ -165,11 +166,10 @@ function loadSTL(path,manager){
         
 
         // Handle this better
+        cannon = new ScanDistort("cannon");
+        cannon.init(container,geometry);
 
-        // cannon = new ScanDistort("cannon");
-        // cannon.init(container,geometry);
-        // cannon.initMesh(geometry)
-        // scene.add(cannon.getMesh());
+
 
       } );
 
@@ -185,7 +185,7 @@ function addObject(name,matname,matstate){
   }
   
   if(matname == obj.material.name){
-    console.log(obj.material);
+    // console.log(obj.material);
     switch(obj.material.name){
       case "MeshStandardMaterial" :
           if("color" in matstate) obj.material.color.setHex(matstate.color);
@@ -200,7 +200,7 @@ function addObject(name,matname,matstate){
             } 
           }
           if("u_color" in matstate){
-            console.log(matstate["u_color"]);
+            // console.log(matstate["u_color"]);
             uniforms["u_color"].value = matstate["u_color"];
           } 
         break;
@@ -225,40 +225,65 @@ function changeThreeState(state){
   //for any animation potentially
   // startTime = time;
 
-  if(currentState in objStates){
-    removeObject(objStates[currentState].obj);
-  }
-  
-  if(state in objStates){
-    addObject(objStates[state].obj,objStates[state].mat,objStates[state].matstate);
-  }
+  if(state == "flow"){
 
-  if(state == "shape"){
-    scene.children[3].position.x = 10;
-    camera.position.x = 20;
-    camera.position.z = 110;
-    animateCamera = false;
-    ambientLight.intensity = 1.0;
-    light.intensity = 0;
-    light1.intensity = 0;
-    fullPageApp = false;
+      container.innerHTML = "";
+      cannon.appendCanvas();
 
-    camera.aspect = window.innerWidth / 400;
-    camera.updateProjectionMatrix();
-    renderer.setSize( window.innerWidth, 400);
+      renderState.state = "flow";
+
   }else{
-    scene.children[3].position.x = -10;
-    animateCamera = true;
-    ambientLight.intensity = 0.2;
-    light.intensity = 1.0;
-    light1.intensity = 1.0;
-    fullPageApp = true;
-    // widthDivider = 1.0;
-    // heightDivider = 1.0;
-    camera.aspect = window.innerWidth*widthDivider / window.innerHeight;
-    camera.updateProjectionMatrix();
-    renderer.setSize( window.innerWidth, window.innerHeight*heightDivider);
+
+    if(typeof cannon != "undefined"){
+        cannon.removeCanvas();
+    }
+
+    container.appendChild(renderer.domElement);
+
+    if(renderState.state != "default"){
+      renderState.state = "default";
+      animate();
+    }
+
+
+
+    if(currentState in objStates){
+      removeObject(objStates[currentState].obj);
+    }
+    
+    if(state in objStates){
+      addObject(objStates[state].obj,objStates[state].mat,objStates[state].matstate);
+    }
+
+    if(state == "shape"){
+      scene.children[3].position.x = 10;
+      camera.position.x = 20;
+      camera.position.z = 110;
+      animateCamera = false;
+      ambientLight.intensity = 1.0;
+      light.intensity = 0;
+      light1.intensity = 0;
+      fullPageApp = false;
+
+      camera.aspect = window.innerWidth / 400;
+      camera.updateProjectionMatrix();
+      renderer.setSize( window.innerWidth, 400);
+    }else{
+      scene.children[3].position.x = -10;
+      animateCamera = true;
+      ambientLight.intensity = 0.2;
+      light.intensity = 1.0;
+      light1.intensity = 1.0;
+      fullPageApp = true;
+      // widthDivider = 1.0;
+      // heightDivider = 1.0;
+      camera.aspect = window.innerWidth*widthDivider / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize( window.innerWidth, window.innerHeight*heightDivider);
+    }
   }
+
+
 
   //Play the camera animation if there is one
   //Either using tweens??
@@ -276,6 +301,7 @@ function changeThreeState(state){
 
 function init() {
 
+ 
 
   container = document.getElementById("sketch");
   document.body.appendChild( container );
@@ -347,62 +373,72 @@ function init() {
 
 function animate(timestamp) {
 
-  requestAnimationFrame( animate );
-  time = timestamp;
-  uniforms.time.value = (time - startTime) / 19000;
-  render();
+  
+
+  if(renderState.state == "default"){
+
+
+    requestAnimationFrame( animate );
+    time = timestamp;
+    uniforms.time.value = (time - startTime) / 19000;
+    render();
+
+   }
+
   // stats.update();
 
 }
 
 function render() {
 
-  if(animateCamera){
-    theta += 0.1;
-    camera.position.x = radius * Math.sin( THREE.Math.degToRad( theta ) );
-    // camera.position.y = radius * Math.sin( THREE.Math.degToRad( theta ) );
-    camera.position.z = radius * Math.cos( THREE.Math.degToRad( theta ) );
-  }
+    if(animateCamera){
+      theta += 0.1;
+      camera.position.x = radius * Math.sin( THREE.Math.degToRad( theta ) );
+      // camera.position.y = radius * Math.sin( THREE.Math.degToRad( theta ) );
+      camera.position.z = radius * Math.cos( THREE.Math.degToRad( theta ) );
+    }
 
-  // if(typeof scene.children[3] !== 'undefined' && drawCount < scene.children[3].geometry.getAttribute("position").array.length){
-  //   drawCount += 1;
-  //   scene.children[3].geometry.setDrawRange(0,drawCount);
-  // }
+    // if(typeof scene.children[3] !== 'undefined' && drawCount < scene.children[3].geometry.getAttribute("position").array.length){
+    //   drawCount += 1;
+    //   scene.children[3].geometry.setDrawRange(0,drawCount);
+    // }
 
-  camera.lookAt( scene.position );
-  camera.updateMatrixWorld();
-
-
-  if(currentState == "flow"){
-    uniforms["u_noffset"].value = Math.abs(Math.sin(uniforms.time.value))*10;
-    // console.log(uniforms["u_noffset"].value );
-  }
+    camera.lookAt( scene.position );
+    camera.updateMatrixWorld();
 
 
-  // find intersections
-  // raycaster.setFromCamera( mouse, camera );
-  // var intersects = raycaster.intersectObjects( scene.children );
-  // if ( intersects.length > 0 ) {
-  //   if ( INTERSECTED != intersects[ 0 ].object && intersects[ 0 ].object.name != "ground") {
-  //     // if ( INTERSECTED ) INTERSECTED.material.emissive.setHex( INTERSECTED.currentHex );
-  //     if ( INTERSECTED ) INTERSECTED.material.wireframe = false;
-
-  //     INTERSECTED = intersects[ 0 ].object;
-  //     // INTERSECTED.currentHex = INTERSECTED.material.emissive.getHex();
-
-  //     INTERSECTED.material.wireframe = true;
-  //     // INTERSECTED.material.emissive.setHex( 0xff0000 );
-  //   }
-  // } else {
-  //   // if ( INTERSECTED ) INTERSECTED.material.emissive.setHex( INTERSECTED.currentHex );
-  //   if ( INTERSECTED ) INTERSECTED.material.wireframe = false;
-  //   INTERSECTED = null;
-  // }
+    if(currentState == "flow"){
+      uniforms["u_noffset"].value = Math.abs(Math.sin(uniforms.time.value))*10;
+      // console.log(uniforms["u_noffset"].value );
+    }
 
 
+    // find intersections
+    // raycaster.setFromCamera( mouse, camera );
+    // var intersects = raycaster.intersectObjects( scene.children );
+    // if ( intersects.length > 0 ) {
+    //   if ( INTERSECTED != intersects[ 0 ].object && intersects[ 0 ].object.name != "ground") {
+    //     // if ( INTERSECTED ) INTERSECTED.material.emissive.setHex( INTERSECTED.currentHex );
+    //     if ( INTERSECTED ) INTERSECTED.material.wireframe = false;
 
-  //Render
-  renderer.render( scene, camera );
+    //     INTERSECTED = intersects[ 0 ].object;
+    //     // INTERSECTED.currentHex = INTERSECTED.material.emissive.getHex();
+
+    //     INTERSECTED.material.wireframe = true;
+    //     // INTERSECTED.material.emissive.setHex( 0xff0000 );
+    //   }
+    // } else {
+    //   // if ( INTERSECTED ) INTERSECTED.material.emissive.setHex( INTERSECTED.currentHex );
+    //   if ( INTERSECTED ) INTERSECTED.material.wireframe = false;
+    //   INTERSECTED = null;
+    // }
+
+
+
+    //Render
+    renderer.render( scene, camera );
+
+
 }
 
 
@@ -455,7 +491,7 @@ function injectContent(state){
 
   //b) "behind the scenes" nav drawer
 
-  console.log(state + " information injected");
+  // console.log(state + " information injected");
 }
 
 
@@ -468,7 +504,7 @@ document.querySelectorAll("nav a").forEach(function(element){
 
 function changeState(event){
   //Global variable
-  console.log(event);
+  // console.log(event);
   if(!event.target.classList.contains("active")){
     document.querySelectorAll("nav a").forEach(function(element){
       element.classList.remove("active");

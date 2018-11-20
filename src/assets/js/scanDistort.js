@@ -2,6 +2,7 @@ function ScanDistort(name){
 	var WIDTH = 512;
 
 	var initialized = false;
+	var activeRender = false;
 
 	var last = performance.now();
     var start = performance.now();
@@ -151,7 +152,6 @@ function ScanDistort(name){
 	}
 
   	function initMesh(baseGeometry) {
-  		console.log(baseGeometry);
   		
 		var geometry = new THREE.BufferGeometry();
 			
@@ -203,6 +203,18 @@ function ScanDistort(name){
 
     } 
 
+    function appendCanvas(){
+    	activeRender = true;
+    	container.appendChild( renderer.domElement );
+		start = performance.now();
+        animate();
+    }
+
+    function removeCanvas() {
+    	activeRender = false;
+    	container.innerHTML = "";
+    }
+
     function getName() {
     	return name;
     }
@@ -219,68 +231,62 @@ function ScanDistort(name){
 
 		if(!initialized){
 
-			console.log("Init: " + name);
+		console.log("Init: " + name);
 
-			//TODO store a ref to container somehow.
-			//Or just an element to check if in DOM before runnning Animate
+		//TODO store a ref to container somehow.
+		//Or just an element to check if in DOM before runnning Animate
 
-	        camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 1, 3000 );
-	        camera.position.z = 350;
-	        
-	        scene = new THREE.Scene();
-	        scene.background = new THREE.Color( 0xffffff );
-	        scene.fog = new THREE.Fog( 0xffffff, 100, 1000 );
-	        
-	        var light = new THREE.DirectionalLight( 0xffffff, 1 );
-	        light.position.set( 1, 1, 1 ).normalize();
-	        scene.add( light );
+        camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 1, 3000 );
+        camera.position.z = 350;
+        
+        scene = new THREE.Scene();
+        scene.background = new THREE.Color( 0xffffff );
+        scene.fog = new THREE.Fog( 0xffffff, 100, 1000 );
+        
+        var light = new THREE.DirectionalLight( 0xffffff, 1 );
+        light.position.set( 1, 1, 1 ).normalize();
+        scene.add( light );
 
-	        renderer = new THREE.WebGLRenderer();
-	        renderer.setPixelRatio( window.devicePixelRatio );
-	        renderer.setSize( window.innerWidth, window.innerHeight );
-	        container.appendChild( renderer.domElement );
+        renderer = new THREE.WebGLRenderer();
+        renderer.setPixelRatio( window.devicePixelRatio );
+        renderer.setSize( window.innerWidth, window.innerHeight );
+        // container.appendChild( renderer.domElement );
 
-	        renderer.autoClear = false;  //!!!!!!
+        renderer.autoClear = false;  //!!!!!!
 
-	        cameraOrtho = new THREE.OrthographicCamera(    
-	          -400 , // frustum left plane
-	          400 , // frustum right plane.
-	          400, // frustum top plane.
-	          -400 , // frustum bottom plane. 
-	          0, // frustum near plane. //Set to 0 so plane is visible
-	          1000 // frustum far plane.
-	        );
+        cameraOrtho = new THREE.OrthographicCamera(    
+          -400 , // frustum left plane
+          400 , // frustum right plane.
+          400, // frustum top plane.
+          -400 , // frustum bottom plane. 
+          0, // frustum near plane. //Set to 0 so plane is visible
+          1000 // frustum far plane.
+        );
 
-	        sceneInset = new THREE.Scene();
+        sceneInset = new THREE.Scene();
 
-	        var pGeom = new THREE.PlaneGeometry( 400,400 );
-	        var pMat = new THREE.MeshBasicMaterial( {color: 0xffffff});
-	        plane = new THREE.Mesh( pGeom, pMat );
-	        plane.lookAt( cameraOrtho.position );
-	        sceneInset.add(plane);
+        var pGeom = new THREE.PlaneGeometry( 400,400 );
+        var pMat = new THREE.MeshBasicMaterial( {color: 0xffffff});
+        plane = new THREE.Mesh( pGeom, pMat );
+        plane.lookAt( cameraOrtho.position );
+        sceneInset.add(plane);
 
-	        controls = new THREE.OrbitControls( camera, renderer.domElement );
+        controls = new THREE.OrbitControls( camera, renderer.domElement );
 
-	        // document.addEventListener( 'mousemove', onDocumentMouseMove, false );
-	        // document.addEventListener( 'touchstart', onDocumentTouchStart, false );
-	        // document.addEventListener( 'touchmove', onDocumentTouchMove, false );
+        // document.addEventListener( 'mousemove', onDocumentMouseMove, false );
+        // document.addEventListener( 'touchstart', onDocumentTouchStart, false );
+        // document.addEventListener( 'touchmove', onDocumentTouchMove, false );
 
-	        window.addEventListener( 'resize', onWindowResize, false );
+        window.addEventListener( 'resize', onWindowResize, false );
 
 
-	        initMesh(baseGeometry);
-	        initComputeRenderer();
-	        
-	        start = performance.now();
-	        animate();
-	          
-	        initialized = true;
+        initMesh(baseGeometry);
+        initComputeRenderer();
+                
+        initialized = true;
 
 		}else{
 			console.log("Already initialized: " + name);
-			container.appendChild( renderer.domElement );
-			start = performance.now();
-	        animate();
 		}
  
 	}	
@@ -290,12 +296,15 @@ function ScanDistort(name){
 		//TODO add in conditional to check if DOM element before call AnimFrame and render
 		//Or just an element to check if in DOM before runnning Animate
 
+		if(activeRender){
+			requestAnimationFrame( animate );
+        	render();
+		}
 
-		requestAnimationFrame( animate );
-        render();
 	}
 
 	function render() {
+
 		var now = performance.now();
         var delta = (now - last) / 1000;
 
@@ -359,7 +368,9 @@ function ScanDistort(name){
 		init: init,
 		initMesh: initMesh,
 		animate: animate,
-		render: render
+		render: render,
+		removeCanvas: removeCanvas,
+		appendCanvas: appendCanvas
 	};
 
 }
