@@ -20,6 +20,8 @@ function ScanDistort(name){
 	var camera,scene,renderer;
 	var cameraOrtho,sceneInset,plane;
 
+	var pUniforms;
+
 	function initComputeRenderer() {
 
 
@@ -50,6 +52,8 @@ function ScanDistort(name){
 		velocityUniforms.u_noffset = { value: 0.0 };
 
 		velocityUniforms.normals = {value: dtNormal};
+
+		pUniforms.normals = {value: dtNormal};
 
 		velocityVariable.wrapS = THREE.RepeatWrapping;
 		velocityVariable.wrapT = THREE.RepeatWrapping;
@@ -108,9 +112,9 @@ function ScanDistort(name){
 		    theArray[ k + 2 ] = posAttribute.array[i+2];
 
 		    if(i < posAttribute.array.length/2){
-		      theArray[ k + 3 ] = 1.5;
+		      theArray[ k + 3 ] = 10;
 		    }else{
-		      theArray[ k + 3 ] = -0.1;
+		      theArray[ k + 3 ] = 1;
 		    }
 		      
 
@@ -199,21 +203,7 @@ function ScanDistort(name){
 		var shader = getCustomShader();
 		var tShader = getTranslucentShader();
 
-		var extendUniforms = {
-			// color: { value: new THREE.Color( 0xff2200 ) },
-			texturePosition: { value: null },
-			textureVelocity: { value: null },
-			time: { value: 1.0 },
-			delta: { value: 0.0 }
-			// u_resolution: { type: "v2", value: new THREE.Vector2() },
-      		// u_noffset: { type: "f", value: 0},
-      		// u_color: { type: "v3", value: new THREE.Vector3() }
-		};
-
-
-
-
-		scanUniforms = THREE.UniformsUtils.merge([tShader.uniforms, extendUniforms]);
+		scanUniforms = THREE.UniformsUtils.merge([tShader.uniforms, shader.uniforms]);
 
 		var customPhysicalMaterial = new THREE.ShaderMaterial( { 
 		  uniforms:       scanUniforms,
@@ -238,23 +228,27 @@ function ScanDistort(name){
 		scanMesh.updateMatrix();
 
 		var pCompShader = getComputePointShader();
-		var pUniforms = pShader.uniforms;
-		  uniforms.u_resolution.value.x = 1;
-		  uniforms.u_resolution.value.y = 1;
+		pUniforms = pCompShader.uniforms;
+		pUniforms.u_color.value = new THREE.Vector3(0.65,0.55,0.1);//new THREE.Vector3(0.8,0.8,0.8);// new THREE.Vector3(0.65,0.55,0.1);
+
+		pUniforms.u_resolution.value.x = 1;
+		pUniforms.u_resolution.value.y = 1;
 
         var pointsMaterial = new THREE.ShaderMaterial( {
           uniforms: pUniforms,
           vertexShader: pCompShader.vertexShader,
-          fragmentShader: pCompShader.fragmentShader
+          fragmentShader: pCompShader.fragmentShader,
+          transparent: true
         } );
         
         pointsMaterial.name = "pointsMaterial";
         // mats.push(pointsMaterial);
 
-        var points = new THREE.Points( baseGeometry, pointsMaterial );
+        var points = new THREE.Points( geometry, pointsMaterial );
         // points.position.set( -10, - 5, 0 );
         points.rotation.set( -Math.PI/2, 0, 0 );
 
+        console.log(points);
 		// add existing points shader to a 
 		// getPointsShader function in shaders.js
 		// remove both shaders from the default.ejs
@@ -412,6 +406,8 @@ function ScanDistort(name){
 
           scanUniforms.time.value = now;
           scanUniforms.delta.value = delta;
+          pUniforms.time.value = now;
+          pUniforms.delta.value = delta;
         // }else{
           // velocityUniforms.u_noffset.value = 0.0;
         // }
@@ -426,6 +422,9 @@ function ScanDistort(name){
 
         scanUniforms.texturePosition.value = gpuCompute.getCurrentRenderTarget( positionVariable ).texture;
         scanUniforms.textureVelocity.value = gpuCompute.getCurrentRenderTarget( velocityVariable ).texture;
+        pUniforms.texturePosition.value = gpuCompute.getCurrentRenderTarget( positionVariable ).texture;
+        pUniforms.textureVelocity.value = gpuCompute.getCurrentRenderTarget( velocityVariable ).texture;
+
 
         plane.material.needsUpdate = true;
         plane.material.map = gpuCompute.getCurrentRenderTarget( positionVariable ).texture;

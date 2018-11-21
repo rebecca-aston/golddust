@@ -4,7 +4,16 @@
 function getCustomShader(){
 
   var customPhysical = { 
-  uniforms: this.scanUniforms,
+  uniforms: {
+      // color: { value: new THREE.Color( 0xff2200 ) },
+      texturePosition: { value: null },
+      textureVelocity: { value: null },
+      time: { value: 1.0 },
+      delta: { value: 0.0 }
+      // u_resolution: { type: "v2", value: new THREE.Vector2() },
+          // u_noffset: { type: "f", value: 0},
+          // u_color: { type: "v3", value: new THREE.Vector3() }
+    }, 
   vertexShader:
       `//template literal open
 
