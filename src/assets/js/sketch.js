@@ -7,6 +7,8 @@ var radius = 100, theta = 0;
 var startTime = 0;
 var drawCount = 1;
 var time;
+//Point Shader uniforms
+var uniforms, pShader;
 // var objects = [];
 var renderState = {state:"default"};
 var currentState = "word"; //serving as init state too
@@ -97,15 +99,7 @@ var objStates = {
 }
 
 
-//Point Shader uniforms
-var uniforms = {
-      time: { value: 1.0 },
-      u_resolution: { type: "v2", value: new THREE.Vector2() },
-      u_mouse: { type: "v2", value: new THREE.Vector2() },
-      u_light: { type: "v3", value: new THREE.Vector3() },
-      u_noffset: { type: "f", value: 0},
-      u_color: { type: "v3", value: new THREE.Vector3() }
-    };
+
 
 init();
 animate();
@@ -144,10 +138,11 @@ function loadSTL(path,manager){
         objStates.mesh.obj = mesh.name;
         objStates.material.obj = mesh.name;
 
+
         var pointsMaterial = new THREE.ShaderMaterial( {
           uniforms: uniforms,
-          vertexShader: document.getElementById( 'vertexShader' ).textContent,
-          fragmentShader: document.getElementById( 'fragmentShader' ).textContent
+          vertexShader: pShader.vertexShader,
+          fragmentShader: pShader.fragmentShader
         } );
         
         pointsMaterial.name = "pointsMaterial";
@@ -324,10 +319,6 @@ function init() {
   ambientLight = new THREE.AmbientLight( 0xffffff, .2 );
   scene.add( ambientLight );
 
-  uniforms.u_resolution.value.x = 1;
-  uniforms.u_resolution.value.y = 1;
-
-
 
   //Look into this! then can run point system after load
   //And make a loading animation
@@ -346,6 +337,13 @@ function init() {
     });
 
   };
+
+
+  pShader = getBasicPointShader();
+  uniforms = pShader.uniforms;
+  uniforms.u_resolution.value.x = 1;
+  uniforms.u_resolution.value.y = 1;
+
 
   //CANON
   loadSTL('models/canonDecimated03.stl',manager);

@@ -154,6 +154,10 @@ function ScanDistort(name){
   	function initMesh(baseGeometry) {
   		
 		var geometry = new THREE.BufferGeometry();
+
+
+		//var points = new etc 
+
 			
 		var references = new THREE.BufferAttribute( new Float32Array( baseGeometry.getAttribute('position').count * 2 ), 2 ); // x and y coordinates of the texel associated to a particular vertex.
 		var magnitudes = new THREE.BufferAttribute( new Float32Array( baseGeometry.getAttribute('position').count ), 2 );
@@ -161,16 +165,35 @@ function ScanDistort(name){
 		geometry.addAttribute( 'position', baseGeometry.getAttribute('position') );
 		geometry.addAttribute( 'reference', references );
 		geometry.addAttribute( 'normal', baseGeometry.getAttribute('normal') );
-		geometry.addAttribute( 'magnitude', magnitudes );
+		geometry.addAttribute( 'magnitude', magnitudes ); //? am I using this
 
+
+		// var pointsReferences = new THREE.BufferAttribute( new Float32Array( (baseGeometry.getAttribute('position').count / 3) * 2 ), 2 ); // x and y coordinates of the texel associated to a particular vertex.
+		// var pointsPositions = new THREE.BufferAttribute( new Float32Array( (baseGeometry.getAttribute('position').count / 3) * 3 ), 3 );
+		// points.addAttribute( 'position', pointsPositions); //DOn't even really need to init point pos
+		// points.addAttribute( 'reference', pointsReferences );
+
+		//create points index ref
 
 		for( var v = 0; v < geometry.getAttribute('position').count; v++ ) {
 		  var i = ~~(v);
 		  var x = (i % WIDTH) / WIDTH; 
 		  var y = ~~(i / WIDTH) / WIDTH;
 
+
 		  references.array[ v * 2    ] = x; 
 		  references.array[ v * 2 + 1 ] = y;
+
+		  		  //need to grab this reference for only every first point of three
+		  //and add them to a shorter reference array on the point material
+		  // if(i%3 == 0){
+		  	// for points index ref, just need to figure out the pot length of 
+		  	// i think it's position.count * 4 --> so v*4 give first r (of rgbw) of all verts	
+		  	// so yes when i%3 == 0  -> pointsIndexRef[ figure out ] = v * 4
+
+		  // 	pointsReferences.array[ figure out  ] = x; 
+		  // 	pointsReferences.array[ figure out   ] = y;
+		  // }
 		}
 
 		var shader = getCustomShader();
@@ -182,7 +205,13 @@ function ScanDistort(name){
 			textureVelocity: { value: null },
 			time: { value: 1.0 },
 			delta: { value: 0.0 }
+			// u_resolution: { type: "v2", value: new THREE.Vector2() },
+      		// u_noffset: { type: "f", value: 0},
+      		// u_color: { type: "v3", value: new THREE.Vector3() }
 		};
+
+
+
 
 		scanUniforms = THREE.UniformsUtils.merge([tShader.uniforms, extendUniforms]);
 
@@ -208,10 +237,48 @@ function ScanDistort(name){
 		scanMesh.matrixAutoUpdate = false;
 		scanMesh.updateMatrix();
 
+		var pCompShader = getComputePointShader();
+		var pUniforms = pShader.uniforms;
+		  uniforms.u_resolution.value.x = 1;
+		  uniforms.u_resolution.value.y = 1;
 
+        var pointsMaterial = new THREE.ShaderMaterial( {
+          uniforms: pUniforms,
+          vertexShader: pCompShader.vertexShader,
+          fragmentShader: pCompShader.fragmentShader
+        } );
+        
+        pointsMaterial.name = "pointsMaterial";
+        // mats.push(pointsMaterial);
 
+        var points = new THREE.Points( baseGeometry, pointsMaterial );
+        // points.position.set( -10, - 5, 0 );
+        points.rotation.set( -Math.PI/2, 0, 0 );
+
+		// add existing points shader to a 
+		// getPointsShader function in shaders.js
+		// remove both shaders from the default.ejs
+		// use point frag
+		//AND
+		// create custom vert shader that is setting point pos from texturePosition with custom ref array
+		// plus an offset by 2 * normal from normal texture with custom ref array
+		// and point size based on a fraction of the magnitude from normal texture with custom ref array
+
+		//points shader and material etc etc
+		//points update rotation etc
+		//scene.add(points);
 
 		scene.add(scanMesh);
+		scene.add(points);
+
+		//on click of points will need to have stored an index to the one vertex it represents
+		//so can iterate by three through the normal texture to update 
+		//all three vertices magnitude 
+		//will be super quick to grab the k index of texture
+		// always the k + 3 (w of texel in normalTexture)
+		// where k is incrementing by 4 
+		// for(int k = interactPointIndexRef, kl = interactPointIndexRef+4*3; k += 4)
+		//texArray[k(+3)] --> is the magnitude val for all three texels 
 
     } 
 
