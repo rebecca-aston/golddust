@@ -365,7 +365,7 @@ function init() {
 
 
   document.addEventListener( 'mousemove', onDocumentMouseMove, false );
-  document.addEventListener( 'click', onClicked, false);
+  // document.addEventListener( 'click', onClicked, false);
   window.addEventListener( 'resize', onWindowResize, false );
 }
 
@@ -464,13 +464,13 @@ function onDocumentMouseMove( event ) {
   uniforms.u_mouse.value.y = mouse.y;
 }
 
-function onClicked(event){
-  if(INTERSECTED) {
-    //Open popup with information
-    //TODO expand this out so that you can fire different functions
-    // scene.add( points );
-  }
-}
+// function onClicked(event){
+//   if(INTERSECTED) {
+//     //Open popup with information
+//     //TODO expand this out so that you can fire different functions
+//     // scene.add( points );
+//   }
+// }
 
 //HTML handling
 

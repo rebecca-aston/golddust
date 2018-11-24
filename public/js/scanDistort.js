@@ -13,14 +13,14 @@ function ScanDistort(name){
   	var normalVariable;
   	var positionUniforms;
   	var velocityUniforms;
+  	var dtNormal;
 
-  	var scanUniforms = {};
-  	var scanMesh;
+  	var scanUniforms,pUniforms;
+  	var scanMesh, points;
+  	
 
-	var camera,scene,renderer;
+	var camera,scene,renderer, raycaster, mouse, intersects, INTERSECTED;
 	var cameraOrtho,sceneInset,plane;
-
-	var pUniforms;
 
 	function initComputeRenderer() {
 
@@ -30,7 +30,7 @@ function ScanDistort(name){
 
 		var dtPosition = gpuCompute.createTexture();
 		var dtVelocity = gpuCompute.createTexture();
-		var dtNormal = gpuCompute.createTexture();
+		dtNormal = gpuCompute.createTexture();
 		fillPositionTexture( dtPosition );
 		fillVelocityTexture( dtVelocity );
 		fillNormalTexture( dtNormal );
@@ -101,6 +101,7 @@ function ScanDistort(name){
 
 		var theArray = texture.image.data;
 		var posAttribute = scanMesh.geometry.getAttribute("normal");
+		var magAttribute = scanMesh.geometry.getAttribute("magnitude");
 
 		var i = 0;//count for different item size of source array i.e. vec3 
 		for ( var k = 0, kl = theArray.length; k < kl; k += 4 ) { 
@@ -110,12 +111,13 @@ function ScanDistort(name){
 		    theArray[ k  ] = posAttribute.array[i];
 		    theArray[ k + 1 ] = posAttribute.array[i+1];
 		    theArray[ k + 2 ] = posAttribute.array[i+2];
+		    theArray[ k + 3 ] = magAttribute.array[i/3];
 
-		    if(i < posAttribute.array.length/2){
-		      theArray[ k + 3 ] = 10;
-		    }else{
-		      theArray[ k + 3 ] = 1;
-		    }
+		    // if(i < posAttribute.array.length/2){
+		    //   theArray[ k + 3 ] = .1;
+		    // }else{
+		    //   theArray[ k + 3 ] = .1;
+		    // }
 		      
 
 		    i+=3;
@@ -128,14 +130,57 @@ function ScanDistort(name){
 		  }
 
 		}
+	}
 
+	function newNormalTexture( texture, index ) {
+
+		var theArray = texture.image.data;
+		var posAttribute = scanMesh.geometry.getAttribute("normal");
+		var magAttribute = scanMesh.geometry.getAttribute("magnitude");
+
+		console.log( magAttribute.array[index] , magAttribute.array[index+1]);
+
+		var i = 0;//count for different item size of source array i.e. vec3 
+		for ( var k = 0, kl = theArray.length; k < kl; k += 4 ) { 
+
+
+		  if(i < posAttribute.array.length){ 
+		    theArray[ k  ] = posAttribute.array[i];
+		    theArray[ k + 1 ] = posAttribute.array[i+1];
+		    theArray[ k + 2 ] = posAttribute.array[i+2];
+
+		    if(k > index-10000 && k < index+10000){
+		    	console.log(k);
+		    	theArray[ k + 3 ] = 10;
+		    }else{
+		    	theArray[ k + 3 ] = 0;
+		    }
+		    
+
+		    // if(i < posAttribute.array.length/2){
+		    //   theArray[ k + 3 ] = val;
+		    // }else{
+		    //   theArray[ k + 3 ] = .1;
+		    // }
+		      
+
+		    i+=3;
+
+		  }else{
+		    theArray[ k  ] = 1;
+		    theArray[ k + 1 ] = 1;
+		    theArray[ k + 2 ] = 1;
+		    theArray[ k + 3 ] = 1;
+		  }
+
+		}
 	}
 
 	function fillVelocityTexture( texture ) {
 
 		var theArray = texture.image.data;
 
-		for ( var k = 0, kl = theArray.length; k < kl; k += 48 ) {
+		for ( var k = 0, kl = theArray.length; k < kl; k += 4 ) {
 
 		  var x = Math.random() - 0.5;
 		  var y = Math.random() - 0.5;
@@ -149,7 +194,7 @@ function ScanDistort(name){
 		  theArray[ k + 0 ] = 0 ;
 		  theArray[ k + 1 ] = 0 ;
 		  theArray[ k + 2 ] = 0 ;
-		  theArray[ k + 3 ] = 1;
+		  theArray[ k + 3 ] = 0 ;
 
 		}
 
@@ -164,7 +209,7 @@ function ScanDistort(name){
 
 			
 		var references = new THREE.BufferAttribute( new Float32Array( baseGeometry.getAttribute('position').count * 2 ), 2 ); // x and y coordinates of the texel associated to a particular vertex.
-		var magnitudes = new THREE.BufferAttribute( new Float32Array( baseGeometry.getAttribute('position').count ), 2 );
+		var magnitudes = new THREE.BufferAttribute( new Float32Array( baseGeometry.getAttribute('position').count ), 1 );
 
 		geometry.addAttribute( 'position', baseGeometry.getAttribute('position') );
 		geometry.addAttribute( 'reference', references );
@@ -188,6 +233,7 @@ function ScanDistort(name){
 		  references.array[ v * 2    ] = x; 
 		  references.array[ v * 2 + 1 ] = y;
 
+		  magnitudes.array[v] = 0;
 		  		  //need to grab this reference for only every first point of three
 		  //and add them to a shorter reference array on the point material
 		  // if(i%3 == 0){
@@ -199,6 +245,8 @@ function ScanDistort(name){
 		  // 	pointsReferences.array[ figure out   ] = y;
 		  // }
 		}
+
+		console.log(geometry);
 
 		var shader = getCustomShader();
 		var tShader = getTranslucentShader();
@@ -244,11 +292,13 @@ function ScanDistort(name){
         pointsMaterial.name = "pointsMaterial";
         // mats.push(pointsMaterial);
 
-        var points = new THREE.Points( geometry, pointsMaterial );
+        points = new THREE.Points( geometry, pointsMaterial );
         // points.position.set( -10, - 5, 0 );
         points.rotation.set( -Math.PI/2, 0, 0 );
 
-        console.log(points);
+        raycaster = new THREE.Raycaster();
+		mouse = new THREE.Vector2();
+
 		// add existing points shader to a 
 		// getPointsShader function in shaders.js
 		// remove both shaders from the default.ejs
@@ -354,11 +404,13 @@ function ScanDistort(name){
 
 	        controls = new THREE.OrbitControls( camera, renderer.domElement );
 
-	        // document.addEventListener( 'mousemove', onDocumentMouseMove, false );
+	    
 	        // document.addEventListener( 'touchstart', onDocumentTouchStart, false );
 	        // document.addEventListener( 'touchmove', onDocumentTouchMove, false );
 
 	        window.addEventListener( 'resize', onWindowResize, false );
+	        document.addEventListener( 'mousemove', onDocumentMouseMove, false );
+	        document.addEventListener( 'click', onClicked, false);
 
 
 	        initMesh(baseGeometry);
@@ -428,6 +480,45 @@ function ScanDistort(name){
 
         plane.material.needsUpdate = true;
         plane.material.map = gpuCompute.getCurrentRenderTarget( positionVariable ).texture;
+
+
+
+        raycaster.setFromCamera( mouse, camera );
+
+		intersects = raycaster.intersectObject( points );
+
+		if ( intersects.length > 0 ) {
+
+
+
+			if ( INTERSECTED != intersects[ 0 ].index ) {
+
+				points.geometry.getAttribute("magnitude").array[ INTERSECTED ] = 0;
+
+				// attributes.size.array[ INTERSECTED ] = PARTICLE_SIZE;
+
+
+
+				INTERSECTED = intersects[ 0 ].index;
+
+				points.geometry.getAttribute("magnitude").array[ INTERSECTED ] = 2;
+				// attributes.size.array[ INTERSECTED ] = PARTICLE_SIZE * 1.25;
+				// attributes.size.needsUpdate = true;
+				points.geometry.attributes.magnitude.needsUpdate = true;
+			}
+
+		} else if ( INTERSECTED !== null ) {
+
+			points.geometry.getAttribute("magnitude").array[ INTERSECTED ] = 0;
+			points.geometry.attributes.magnitude.needsUpdate = true;
+			// attributes.size.array[ INTERSECTED ] = PARTICLE_SIZE;
+			// attributes.size.needsUpdate = true;
+			INTERSECTED = null;
+
+		}
+
+
+
         
         //3D Camera
         renderer.setViewport( 0, 0, window.innerWidth, window.innerHeight );
@@ -446,6 +537,50 @@ function ScanDistort(name){
     	renderer.setSize( window.innerWidth, window.innerHeight);
 
 
+	}
+
+	function onDocumentMouseMove( event ) {
+
+				event.preventDefault();
+
+				mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
+				mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
+
+	}
+
+	function onClicked(event){
+		console.log("click");
+	  if(INTERSECTED) {
+
+	  	// var xyz = new THREE.Vector3(gpuCompute.getCurrentRenderTarget( positionVariable ).texture.image.data[INTERSECTED*4],gpuCompute.getCurrentRenderTarget( positionVariable ).texture.image.data[INTERSECTED*4+1],gpuCompute.getCurrentRenderTarget( positionVariable ).texture.image.data[INTERSECTED*4+2]);
+
+	  	// camera.lookAt(xyz);
+	  	// camera.
+
+	  	var nT = gpuCompute.createTexture();
+	  	newNormalTexture(nT,INTERSECTED);
+
+	  	velocityUniforms.normals.value = nT;
+		pUniforms.normals.value = nT;
+
+	  	// dtNormal.image.data[INTERSECTED*4+3] = 5;
+	  	
+	  	// console.log(velocityUniforms.normals.value.image.data[INTERSECTED*4+3]);
+
+	  	// var nA = velocityUniforms.normals.value;
+	  	// nA.image.data[INTERSECTED*4+3] = 5;
+
+	  	// velocityUniforms.normals.value = nA;
+
+	  	// console.log(velocityUniforms.normals.value.image.data[INTERSECTED*4+3]);
+
+		// pUniforms.normals.value.image.data[INTERSECTED*4+3] = 5;
+
+
+	    //Open popup with information
+	    //TODO expand this out so that you can fire different functions
+	    // scene.add( points );
+	  }
 	}
 
 	return {

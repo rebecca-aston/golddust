@@ -149,6 +149,7 @@
 
           vec3 selfPosition = texture2D( texturePosition, uv ).xyz;
           vec3 selfVelocity = texture2D( textureVelocity, uv ).xyz;
+          // float magnitude = texture2D( textureVelocity, uv ).w;
 
 
           // u_noffset = 0.0;
@@ -179,7 +180,7 @@
 
           // vec3 velocity =  vec3(sin(time)*5.0,0,0);
 
-          gl_FragColor = vec4( newPosition, 1.0 );
+          gl_FragColor = vec4( newPosition, 1.0 );//magnitude
         }
       `
 

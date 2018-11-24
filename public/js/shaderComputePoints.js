@@ -23,6 +23,7 @@ function getComputePointShader(){
 
         //Custom
         attribute vec2 reference; 
+        attribute float magnitude;
         uniform sampler2D texturePosition;
         uniform float time;
 
@@ -35,7 +36,7 @@ function getComputePointShader(){
           vec4 tmpPos = texture2D( texturePosition, reference ); //the texture plus the texture coordinates
           vec3 pos = tmpPos.xyz;
           // vec3 n = texture2D( normals, uv ).xyz;
-          float mag = texture2D( normals, reference ).w;
+          // float mag = texture2D( normals, reference ).w;
 
           vec3 newPosition = mat3( modelMatrix ) * pos + normal*2.0; 
 
@@ -53,7 +54,7 @@ function getComputePointShader(){
 
           vUv = uv;
 
-          gl_PointSize = (mag * 100.0) / -mvPosition.z ; //* ( 150.0 / -mvPosition.z );
+          gl_PointSize = abs(magnitude) * 50.0 + ( 3.0 * 100.0) / -mvPosition.z ; //* ( 150.0 / -mvPosition.z );
           gl_Position = projectionMatrix * mvPosition;
 
         }
