@@ -19,8 +19,10 @@ function ScanDistort(name){
   	var scanMesh, points;
   	
 
-	var camera,scene,renderer, raycaster, mouse, intersects, INTERSECTED;
+	var camera,scene,renderer, mouse;
 	var cameraOrtho,sceneInset,plane;
+
+	var dir = 1;
 
 	function initComputeRenderer() {
 
@@ -132,13 +134,11 @@ function ScanDistort(name){
 		}
 	}
 
-	function newNormalTexture( texture, index ) {
+	function newNormalTexture( texture, val) { //maybe bering back index
 
 		var theArray = texture.image.data;
 		var posAttribute = scanMesh.geometry.getAttribute("normal");
 		var magAttribute = scanMesh.geometry.getAttribute("magnitude");
-
-		console.log( magAttribute.array[index] , magAttribute.array[index+1]);
 
 		var i = 0;//count for different item size of source array i.e. vec3 
 		for ( var k = 0, kl = theArray.length; k < kl; k += 4 ) { 
@@ -149,12 +149,12 @@ function ScanDistort(name){
 		    theArray[ k + 1 ] = posAttribute.array[i+1];
 		    theArray[ k + 2 ] = posAttribute.array[i+2];
 
-		    if(k > index-10000 && k < index+10000){
-		    	console.log(k);
-		    	theArray[ k + 3 ] = 10;
-		    }else{
-		    	theArray[ k + 3 ] = 0;
-		    }
+		    // if(k > index-10000 && k < index+10000){
+		    // 	console.log(k);
+		    // 	theArray[ k + 3 ] = 10;
+		    // }else{
+		    	theArray[ k + 3 ] = val;
+		    // }
 		    
 
 		    // if(i < posAttribute.array.length/2){
@@ -285,8 +285,8 @@ function ScanDistort(name){
         var pointsMaterial = new THREE.ShaderMaterial( {
           uniforms: pUniforms,
           vertexShader: pCompShader.vertexShader,
-          fragmentShader: pCompShader.fragmentShader,
-          transparent: true
+          fragmentShader: pCompShader.fragmentShader
+          // transparent: true
         } );
         
         pointsMaterial.name = "pointsMaterial";
@@ -296,7 +296,6 @@ function ScanDistort(name){
         // points.position.set( -10, - 5, 0 );
         points.rotation.set( -Math.PI/2, 0, 0 );
 
-        raycaster = new THREE.Raycaster();
 		mouse = new THREE.Vector2();
 
 		// add existing points shader to a 
@@ -312,7 +311,7 @@ function ScanDistort(name){
 		//points update rotation etc
 		//scene.add(points);
 
-		scene.add(scanMesh);
+		// scene.add(scanMesh);
 		scene.add(points);
 
 		//on click of points will need to have stored an index to the one vertex it represents
@@ -410,7 +409,7 @@ function ScanDistort(name){
 
 	        window.addEventListener( 'resize', onWindowResize, false );
 	        document.addEventListener( 'mousemove', onDocumentMouseMove, false );
-	        document.addEventListener( 'click', onClicked, false);
+	        renderer.domElement.addEventListener( 'click', onClicked, false);
 
 
 	        initMesh(baseGeometry);
@@ -483,40 +482,6 @@ function ScanDistort(name){
 
 
 
-        raycaster.setFromCamera( mouse, camera );
-
-		intersects = raycaster.intersectObject( points );
-
-		if ( intersects.length > 0 ) {
-
-
-
-			if ( INTERSECTED != intersects[ 0 ].index ) {
-
-				points.geometry.getAttribute("magnitude").array[ INTERSECTED ] = 0;
-
-				// attributes.size.array[ INTERSECTED ] = PARTICLE_SIZE;
-
-
-
-				INTERSECTED = intersects[ 0 ].index;
-
-				points.geometry.getAttribute("magnitude").array[ INTERSECTED ] = 2;
-				// attributes.size.array[ INTERSECTED ] = PARTICLE_SIZE * 1.25;
-				// attributes.size.needsUpdate = true;
-				points.geometry.attributes.magnitude.needsUpdate = true;
-			}
-
-		} else if ( INTERSECTED !== null ) {
-
-			points.geometry.getAttribute("magnitude").array[ INTERSECTED ] = 0;
-			points.geometry.attributes.magnitude.needsUpdate = true;
-			// attributes.size.array[ INTERSECTED ] = PARTICLE_SIZE;
-			// attributes.size.needsUpdate = true;
-			INTERSECTED = null;
-
-		}
-
 
 
         
@@ -546,41 +511,22 @@ function ScanDistort(name){
 				mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
 				mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
 
+				console.log(mouse.x);
+
 	}
 
 	function onClicked(event){
 		console.log("click");
-	  if(INTERSECTED) {
 
-	  	// var xyz = new THREE.Vector3(gpuCompute.getCurrentRenderTarget( positionVariable ).texture.image.data[INTERSECTED*4],gpuCompute.getCurrentRenderTarget( positionVariable ).texture.image.data[INTERSECTED*4+1],gpuCompute.getCurrentRenderTarget( positionVariable ).texture.image.data[INTERSECTED*4+2]);
-
-	  	// camera.lookAt(xyz);
-	  	// camera.
+		dir = (dir == -1)? 1:-1;
 
 	  	var nT = gpuCompute.createTexture();
-	  	newNormalTexture(nT,INTERSECTED);
+	  	newNormalTexture(nT,10*dir);
 
 	  	velocityUniforms.normals.value = nT;
 		pUniforms.normals.value = nT;
 
-	  	// dtNormal.image.data[INTERSECTED*4+3] = 5;
-	  	
-	  	// console.log(velocityUniforms.normals.value.image.data[INTERSECTED*4+3]);
 
-	  	// var nA = velocityUniforms.normals.value;
-	  	// nA.image.data[INTERSECTED*4+3] = 5;
-
-	  	// velocityUniforms.normals.value = nA;
-
-	  	// console.log(velocityUniforms.normals.value.image.data[INTERSECTED*4+3]);
-
-		// pUniforms.normals.value.image.data[INTERSECTED*4+3] = 5;
-
-
-	    //Open popup with information
-	    //TODO expand this out so that you can fire different functions
-	    // scene.add( points );
-	  }
 	}
 
 	return {
