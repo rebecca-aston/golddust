@@ -1,12 +1,14 @@
 {
-	"title": "Test",
-	"subtitle": "Subtitle",
+	"title": "",
+	"subtitle": "",
 	"date-of-encounter": 2017,
 	"loc-long": -17.692050,
 	"loc-lat": 31.147271,
-	"citation": "from here",
-	"link": "http",
-	"tags": ["social"],
-	"quote": "He said",
-	"text":"120 characters"
+	"date": 0,
+	"period": "",
+	"citation": "From the Biritsh Museum Collection Online. ",
+	"link": "https://www.britishmuseum.org/research/collection_online/collection_object_details.aspx?objectId=626113&partId=1&searchText=Af1979,01.3709&page=1",
+	"tags": ["linguistic", "cannon"],
+	"quote": "Proverbs associated with this weight state: \"A cannon does not miss game.\" \"If you inherit from a white man, you fight with cannons.\"",
+	"text":""
 }

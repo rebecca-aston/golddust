@@ -7,7 +7,7 @@ var radius = 100, theta = 0;
 var startTime = 0;
 var drawCount = 1;
 var dataArray = [];
-var dataLength = 2;
+var dataLength = 10;
 var dataCount = 0;
 var time;
 //Point Shader uniforms
@@ -197,6 +197,10 @@ function loadData(path, manager){
     if(dataCount < dataLength){
       var newPath = path.replace(dataCount,dataCount+1);
       loadData(newPath,manager);
+    }else if ( dataCount == dataLength){
+
+      sortData();
+
     }
 
   });
@@ -210,6 +214,7 @@ function sortData(){
       for(subKey in tags[key]){
         if(dataArray[i].tags.includes(subKey)){
           tags[key][subKey].push(dataArray[i]);
+          console.log(dataArray[i].quote)
         }
       }
     }
@@ -278,10 +283,13 @@ function changeThreeState(state){
 
   if(state == "flow"){
 
-      container.innerHTML = "";
-      cannon.appendCanvas(camera.position.x,camera.position.y,camera.position.z);
+      if(typeof cannon != "undefined"){
+        container.innerHTML = "";
+        cannon.appendCanvas(camera.position.x,camera.position.y,camera.position.z);
 
-      renderState.state = "flow";
+        renderState.state = "flow";
+      }
+
 
   }else{
 
@@ -373,18 +381,11 @@ function init() {
     console.log( item, loaded, total );
 
     //Just for the first cannon object loaded in
-    if(document.getElementsByClassName("lds-dual-ring").length > 0){
+    if(item.match("canon") && document.getElementsByClassName("lds-dual-ring").length > 0){
       document.querySelectorAll("nav a").forEach(function(element){
         element.classList.remove("lds-dual-ring");
         element.classList.remove("inactive");
       });
-    }
-
-    // if everything is loaded in start applying stuff to the object. 
-    if( dataCount == dataLength){
-
-      sortData();
-
     }
 
   };

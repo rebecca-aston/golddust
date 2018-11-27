@@ -357,7 +357,6 @@ function ScanDistort(name){
 
     function addData(t) {
     	tags = t;
-    	console.log("WHOOOOT")
     	constructHTML();
     }
 
@@ -423,7 +422,12 @@ function ScanDistort(name){
 
 		baseHUD.prepend(c);
     	
-    	console.log(baseHUD);
+    	//Slight hack in case someone navigates to dust section before json is loaded in
+    	if(document.getElementById("hud-container").classList.contains("lds-dual-ring") ){
+    		document.getElementById("hud-container").classList.remove("lds-dual-ring");
+    		injectHUD();
+    	}
+    	
 
     }
 
@@ -455,12 +459,13 @@ function ScanDistort(name){
     		}
     		if(tags[category][tag][i].citation != ""){
     			var p = document.createElement('p');
-				p.innerHTML = "citation: "+tags[category][tag][i].citation;
+				p.innerHTML = "Citation: "+tags[category][tag][i].citation;
 				p.classList.add("small");
     			if(tags[category][tag][i].link != ""){
     				var a = document.createElement('a');
     				a.classList.add("out-arrow");
     				a.setAttribute("href",tags[category][tag][i].link);
+    				a.setAttribute("target","_blank");
     				p.append(a);
     			}
     			div.appendChild(p);
@@ -481,7 +486,11 @@ function ScanDistort(name){
 	    var tagContainer = document.getElementById("hud-container");
 	    // tagContainer.setAttribute("category","value");
 	    tagContainer.innerHTML = "";
-	    tagContainer.append(baseHUD);
+	    if(typeof baseHUD != "undefined"){
+	    	tagContainer.append(baseHUD);
+	    }else{
+	    	tagContainer.classList.add("lds-dual-ring");
+	    }
 
 	    document.querySelectorAll(".hud a").forEach(function(element){
 		  element.addEventListener("click",morphMesh,false);

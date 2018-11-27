@@ -4,9 +4,11 @@
 	"date-of-encounter": 2017,
 	"loc-long": -17.692050,
 	"loc-lat": 31.147271,
-	"citation": "",
-	"link": "",
-	"tags": ["economic","political"],
-	"quote": "",
-	"text":"120 characters"
+	"date": 0,
+	"period": "",
+	"citation": "Kawano, Melanie. (Appendix E n. 77) \"Product of the Past: An Examination of Ashanti and Dagari Proverbs as a Means of exploring the Cultural and Societal Effects of the Trans-Atlantic Slave Trade on the Dagaaba People and the Ashanti People\" (1999). African Diaspora ISPs. 80. ",
+	"link": "https://digitalcollections.sit.edu/cgi/viewcontent.cgi?referer=https://www.google.co.uk/&httpsredir=1&article=1037&context=african_diaspora_isp",
+	"tags": ["linguistic", "cannon"],
+	"quote": "When you eat the white man’s pay, you fight at the cannon’s mouth.",
+	"text":""
 }

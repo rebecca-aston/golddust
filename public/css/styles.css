@@ -343,6 +343,9 @@ body[state="flow"] #sketch canvas{
   cursor: grab;
 }
 
+/*.header{
+  margin-top: 50px;
+}*/
 .hud{
   width: 100%;
   margin-top: 20px;
@@ -388,16 +391,24 @@ body[state="flow"] #sketch canvas{
   background-color: #a78d00;
   border-radius: 50%;
 } 
-.info-item p.italic{
+#side-panel .info-item p{
+  margin: .3em 0;
+}
+#side-panel .info-item p.italic{
   font-style: italic;
 }
-.info-item p.small{
+#side-panel .info-item p.small{
   font-size: 1rem;
 }
 
 
 #side-panel .centered{
   width: 80%;
+  padding: 50px 10%;
+  margin:0;
+  overflow: scroll;
+  -webkit-overflow-scrolling: touch;
+  height: 100%;
 }
 
 
