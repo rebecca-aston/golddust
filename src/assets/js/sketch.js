@@ -6,6 +6,9 @@ var INTERSECTED;
 var radius = 100, theta = 0;
 var startTime = 0;
 var drawCount = 1;
+var dataArray = [];
+var dataLength = 2;
+var dataCount = 0;
 var time;
 //Point Shader uniforms
 var uniforms, pShader;
@@ -85,8 +88,8 @@ var objStates = {
     },
     flow:{
       order: 7,
-      title:"dust",
-      subtitle:"The scan has been loaded into a 2D texture, each pixel color (a texel) is the positition data of a vertex. Next I will enter data to morph the mesh using shaders.",
+      // title:"dust",
+      // subtitle:"", //"The scan has been loaded into a 2D texture, each pixel color (a texel) is the positition data of a vertex. Next I will enter data to morph the mesh using shaders.",
       obj:"",
       mat:"pointsMaterial",
       matstate:{u_noffset:50,u_color:new THREE.Vector3(0.65,0.55,0.1)}
@@ -99,6 +102,16 @@ var objStates = {
 }
 
 
+var tags = {
+  value:{
+    social:[],
+    economic:[],
+    linguistic:[]
+  }
+  // exchange:{
+  //   political:[]
+  // }
+};
 
 
 init();
@@ -107,64 +120,104 @@ animate();
 function loadSTL(path,manager){
 
 
-      var loader = new THREE.STLLoader(manager);
-      loader.load( path, function ( geometry ) {
+  var loader = new THREE.STLLoader(manager);
+  loader.load( path, function ( geometry ) {
 
 
-        //Gold 
-        var gold = new THREE.MeshStandardMaterial( {
-            color: 0xa78d00,
-            metalness: 0.5,
-            roughness: 0.5
-          } );
-
-        gold.name = "MeshStandardMaterial";
-        // mats.push(gold);
-
-        var mesh = new THREE.Mesh( geometry, gold );
-        // mesh.position.set( -10, - 5, 0 );
-        mesh.rotation.set( -Math.PI/2, 0, 0 );
-        mesh.scale.set( 1, 1, 1);
-        mesh.castShadow = true;
-        mesh.receiveShadow = true;
-
-        // mesh.geometry.setDrawRange(0,drawCount);
-
-        mesh.name = currentObject;
-        objs.push(mesh);
-
-        objStates.shape.obj = mesh.name;
-        objStates.scan.obj = mesh.name;
-        objStates.mesh.obj = mesh.name;
-        objStates.material.obj = mesh.name;
-
-
-        var pointsMaterial = new THREE.ShaderMaterial( {
-          uniforms: uniforms,
-          vertexShader: pShader.vertexShader,
-          fragmentShader: pShader.fragmentShader
-        } );
-        
-        pointsMaterial.name = "pointsMaterial";
-        // mats.push(pointsMaterial);
-
-        var points = new THREE.Points( geometry, pointsMaterial );
-        // points.position.set( -10, - 5, 0 );
-        points.rotation.set( -Math.PI/2, 0, 0 );
-
-        points.name = currentObject+"Points";
-        objs.push(points);
-        
-        objStates.points.obj = points.name;
-        objStates.flow.obj = points.name;
-
-        // Handle this better
-        cannon = new ScanDistort("cannon");
-        cannon.init(container,geometry);
-
-
-
+    //Gold 
+    var gold = new THREE.MeshStandardMaterial( {
+        color: 0xa78d00,
+        metalness: 0.5,
+        roughness: 0.5
       } );
+
+    gold.name = "MeshStandardMaterial";
+    // mats.push(gold);
+
+    var mesh = new THREE.Mesh( geometry, gold );
+    // mesh.position.set( -10, - 5, 0 );
+    mesh.rotation.set( -Math.PI/2, 0, 0 );
+    mesh.scale.set( 1, 1, 1);
+    mesh.castShadow = true;
+    mesh.receiveShadow = true;
+
+    // mesh.geometry.setDrawRange(0,drawCount);
+
+    mesh.name = currentObject;
+    objs.push(mesh);
+
+    objStates.shape.obj = mesh.name;
+    objStates.scan.obj = mesh.name;
+    objStates.mesh.obj = mesh.name;
+    objStates.material.obj = mesh.name;
+
+
+    var pointsMaterial = new THREE.ShaderMaterial( {
+      uniforms: uniforms,
+      vertexShader: pShader.vertexShader,
+      fragmentShader: pShader.fragmentShader
+    } );
+    
+    pointsMaterial.name = "pointsMaterial";
+    // mats.push(pointsMaterial);
+
+    var points = new THREE.Points( geometry, pointsMaterial );
+    // points.position.set( -10, - 5, 0 );
+    points.rotation.set( -Math.PI/2, 0, 0 );
+
+    points.name = currentObject+"Points";
+    objs.push(points);
+    
+    objStates.points.obj = points.name;
+    objStates.flow.obj = points.name;
+
+    // Handle this better
+    cannon = new ScanDistort("cannon");
+    cannon.init(container,geometry);
+
+    //push the tags object later
+    if(dataCount == dataLength && !cannon.dataAdded()) cannon.addData(tags);
+
+
+  } );
+
+}
+
+function loadData(path, manager){
+
+  var loader = new THREE.FileLoader(manager);
+  loader.load( path, function ( data ) {
+    console.log("Loading: " + path);
+
+    var json = JSON.parse(data);
+    dataArray.push(json);
+
+    dataCount ++;
+
+    if(dataCount < dataLength){
+      var newPath = path.replace(dataCount,dataCount+1);
+      loadData(newPath,manager);
+    }
+
+  });
+
+}
+
+function sortData(){
+
+  for(var i = 0; i < dataArray.length; i++){
+    for(key in tags){
+      for(subKey in tags[key]){
+        if(dataArray[i].tags.includes(subKey)){
+          tags[key][subKey].push(dataArray[i]);
+        }
+      }
+    }
+  }
+
+  if(typeof cannon != "undefined"){
+    if(!cannon.dataAdded()) cannon.addData(tags); 
+  }
 
 }
 
@@ -277,18 +330,6 @@ function changeThreeState(state){
   }
 
 
-
-  //Play the camera animation if there is one
-  //Either using tweens??
-  //OR
-  //depending on state moving camera?
-
-  //Play the animation if there is one
-  //could be loop states ...
-  //using sin etc
-  //or variable you change
-  //maybe better to keep out of tweens. 
-
   currentState = state;
 }
 
@@ -306,8 +347,8 @@ function init() {
   camera.position.x = 9.7;
   camera.position.z = 99.5;
   scene = new THREE.Scene();
-  scene.background = new THREE.Color( 0x01044B );
-  scene.background = new THREE.Color( 0xffffff );
+  // scene.background = new THREE.Color( 0x01044B );
+  scene.background = new THREE.Color( 0xf7f7f7 );
   // scene.fog = new THREE.FogExp2( 0xffffff, 0.007 );
   light = new THREE.DirectionalLight( 0xffffff, 1 );
   light.position.set( 1, 1, 1 ).normalize();
@@ -331,10 +372,20 @@ function init() {
   manager.onProgress = function ( item, loaded, total ) {
     console.log( item, loaded, total );
 
-    document.querySelectorAll("nav a").forEach(function(element){
-      element.classList.remove("lds-dual-ring");
-      element.classList.remove("inactive");
-    });
+    //Just for the first cannon object loaded in
+    if(document.getElementsByClassName("lds-dual-ring").length > 0){
+      document.querySelectorAll("nav a").forEach(function(element){
+        element.classList.remove("lds-dual-ring");
+        element.classList.remove("inactive");
+      });
+    }
+
+    // if everything is loaded in start applying stuff to the object. 
+    if( dataCount == dataLength){
+
+      sortData();
+
+    }
 
   };
 
@@ -348,6 +399,7 @@ function init() {
   //CANON
   loadSTL('models/canonDecimated03.stl',manager);
 
+  loadData('js/json/data1.json',manager);
 
 
   
@@ -363,8 +415,6 @@ function init() {
   // stats = new Stats();
   // container.appendChild( stats.dom );
 
-
-  document.addEventListener( 'mousemove', onDocumentMouseMove, false );
   // document.addEventListener( 'click', onClicked, false);
   window.addEventListener( 'resize', onWindowResize, false );
 }
@@ -410,33 +460,8 @@ function render() {
       // console.log(uniforms["u_noffset"].value );
     }
 
-
-    // find intersections
-    // raycaster.setFromCamera( mouse, camera );
-    // var intersects = raycaster.intersectObjects( scene.children );
-    // if ( intersects.length > 0 ) {
-    //   if ( INTERSECTED != intersects[ 0 ].object && intersects[ 0 ].object.name != "ground") {
-    //     // if ( INTERSECTED ) INTERSECTED.material.emissive.setHex( INTERSECTED.currentHex );
-    //     if ( INTERSECTED ) INTERSECTED.material.wireframe = false;
-
-    //     INTERSECTED = intersects[ 0 ].object;
-    //     // INTERSECTED.currentHex = INTERSECTED.material.emissive.getHex();
-
-    //     INTERSECTED.material.wireframe = true;
-    //     // INTERSECTED.material.emissive.setHex( 0xff0000 );
-    //   }
-    // } else {
-    //   // if ( INTERSECTED ) INTERSECTED.material.emissive.setHex( INTERSECTED.currentHex );
-    //   if ( INTERSECTED ) INTERSECTED.material.wireframe = false;
-    //   INTERSECTED = null;
-    // }
-
-
-
     //Render
     renderer.render( scene, camera );
-
-
 }
 
 
@@ -454,29 +479,13 @@ function onWindowResize() {
   }
 }
 
-function onDocumentMouseMove( event ) {
-  event.preventDefault();
-  // calculate mouse position in normalized device coordinates
-  // (-1 to +1) for both components
-  mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
-  mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
-  uniforms.u_mouse.value.x = mouse.x;
-  uniforms.u_mouse.value.y = mouse.y;
-}
-
-// function onClicked(event){
-//   if(INTERSECTED) {
-//     //Open popup with information
-//     //TODO expand this out so that you can fire different functions
-//     // scene.add( points );
-//   }
-// }
-
 //HTML handling
 
 function injectContent(state){
   //grab the data loaded in from JSON originally that's associated with obj + state
   //inject into:
+  document.querySelectorAll("#state-information h3")[0].innerHTML = "";
+  document.querySelectorAll("#state-information p")[0].innerHTML = "";
 
   //a) state-info div
   if("title" in objStates[state] && "order" in objStates[state]){
@@ -525,62 +534,3 @@ function changeState(event){
 
 
 }
-
-
-// Nav Drawer Events
-  
-  // var navButton = document.getElementById("nav-button");
-  // var navElement = document.getElementById("drawer");
-
-
-  // navButton.addEventListener("click",navClicked,false);
-
-
-
-  // navElement.addEventListener("animationstart", listener, false);
-  // navElement.addEventListener("animationend", listener, false);
-  // navElement.addEventListener("animationiteration", listener, false);
-
-
-  // function navClicked(event) {
-  //   navElement.style["animation-play-state"] = "running";
-    
-  //   if(!navElement.classList.contains("slide-in")){
-  //     navElement.classList.add("slide-in");
-  //   }
-
-  //   if(!navElement.classList.contains("open")){
-  //     navElement.classList.add("open");
-  //     //resize the three.js canvas
-  //     widthDivider = 2.0;
-  //     heightDivider = 0.5;
-  //     window.dispatchEvent(new Event('resize'));
-  //   }else{
-  //     navElement.classList.remove("open");
-  //     //resize the three.js canvas
-  //     heightDivider = 1.0;
-  //     widthDivider = 1.0; 
-  //     window.dispatchEvent(new Event('resize'));
-  //   }
-  // }
-
-
-  // function listener(event) {
-  //   var l = document.createElement("li");
-  //   switch(event.type) {
-  //     case "animationstart":
-        
-  //       break;
-  //     case "animationend":
-          
-  //       break;
-  //     case "animationiteration":
-  //         navElement.style["animation-play-state"] = "paused";
-  //       break;
-  //   }
-    
-  // }
-
-
-
-

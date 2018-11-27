@@ -17,7 +17,12 @@ function ScanDistort(name){
 
   	var scanUniforms,pUniforms;
   	var scanMesh, points;
-  	
+  	var navElement, navButton,baseHUD;
+  	var tags;
+  	var buttons = [
+  		{text:"expand",action:"expand"},
+  		{text:"contract",action:"contract"}
+  	];
 
 	var camera,scene,renderer, mouse;
 	var cameraOrtho,sceneInset,plane;
@@ -329,12 +334,11 @@ function ScanDistort(name){
     	activeRender = true;
     	container.appendChild( renderer.domElement );
 		// start = performance.now();
-		velocityUniforms.u_noffset.value = 1.0;
 		camera.position.x = camX;
 		camera.position.y = camY;
 		camera.position.z = camZ;
 		controls.update();
-		console.log(camX, camZ);
+		injectHUD();
         animate();
     }
 
@@ -351,6 +355,139 @@ function ScanDistort(name){
     	return scanMesh;
     }
 
+    function addData(t) {
+    	tags = t;
+    	console.log("WHOOOOT")
+    	constructHTML();
+    }
+
+    function dataAdded() {
+    	if(typeof tags == "undefined"){
+			return false;
+    	}else{
+    		return true;
+    	}
+    	
+    }
+
+    function constructHTML(){
+
+	    //tags
+    	baseHUD = document.createElement('div');
+    	var c = document.createElement('div')
+    	c.id = 'category';
+
+    	
+    	// for(var i = 0; i < buttons.length; i++){
+    	// 	var bttn = document.createElement('a');
+    	// 	bttn.className = "hud-bttn";
+    	// 	// bttn.createAttribute("action");
+    	// 	bttn.setAttribute("action", buttons[i].action);
+    	// 	bttn.innerHTML = buttons[i].text;
+    	// 	el.append(bttn);
+    	// }
+
+    	console.log(tags);
+
+	    for(key in tags){
+
+	    	var bttn = document.createElement('a');
+			bttn.className = "category-bttn";
+			bttn.setAttribute("category", key);
+			if(key == "value") bttn.classList.add("active");
+			bttn.innerHTML = key;
+			c.append(bttn);
+
+			var h = document.createElement('div');
+			h.setAttribute("category", key);
+			h.classList.add("hud");
+			if(key == "value"){
+				h.classList.add("active");
+			}else{
+				h.classList.add("inactive");
+			}
+
+			for(subKey in tags[key]){
+				var bttn = document.createElement('a');
+				bttn.classList.add("hud-bttn");
+				// bttn.createAttribute("action");
+				bttn.setAttribute("category", key);
+				bttn.setAttribute("tag", subKey);
+				bttn.innerHTML = subKey;
+				h.append(bttn);
+			}
+
+			baseHUD.append(h);
+	    }
+
+
+		baseHUD.prepend(c);
+    	
+    	console.log(baseHUD);
+
+    }
+
+    function injectTagData(category,tag){
+ 		// 	"title": "Test",
+		// "subtitle": "Subtitle",
+		// "date-of-encounter": 2017,
+		// "loc-long": -17.692050,
+		// "loc-lat": 31.147271,
+		// "citation": "",
+		// "tags": ["social"],
+		// "quote": "",
+		// "text":"120 characters"
+		var info = document.getElementById("info-area");
+		info.innerHTML = "";
+    	for(var i = 0; i < tags[category][tag].length; i++){
+    		var div = document.createElement('div');
+    		div.classList.add("info-item");
+    		if(tags[category][tag][i].text != ""){
+				var p = document.createElement('p');
+				p.innerHTML = tags[category][tag][i].text;
+				div.appendChild(p);
+    		}
+    		if(tags[category][tag][i].quote != ""){
+    			var p = document.createElement('p');
+    			p.classList.add("italic");
+    			p.innerHTML = "'"+tags[category][tag][i].quote+"'";
+    			div.appendChild(p);
+    		}
+    		if(tags[category][tag][i].citation != ""){
+    			var p = document.createElement('p');
+				p.innerHTML = "citation: "+tags[category][tag][i].citation;
+				p.classList.add("small");
+    			if(tags[category][tag][i].link != ""){
+    				var a = document.createElement('a');
+    				a.classList.add("out-arrow");
+    				a.setAttribute("href",tags[category][tag][i].link);
+    				p.append(a);
+    			}
+    			div.appendChild(p);
+    		}
+   			info.appendChild(div);
+    	}
+
+    }
+
+    function injectHUD() { //ONLY INJECT HUD ONCE to preserve state
+
+	    if(window.innerWidth > 900){
+	    	navElement.classList.add("open");    
+	    } else {
+	    	navElement.classList.remove("open");    
+	    }
+
+	    var tagContainer = document.getElementById("hud-container");
+	    // tagContainer.setAttribute("category","value");
+	    tagContainer.innerHTML = "";
+	    tagContainer.append(baseHUD);
+
+	    document.querySelectorAll(".hud a").forEach(function(element){
+		  element.addEventListener("click",morphMesh,false);
+		});
+    }
+
     //TODO 
     //Add in a remove self function
 
@@ -361,13 +498,14 @@ function ScanDistort(name){
 
 			console.log("Init: " + name);
 
+
 			//TODO store a ref to container somehow.
 			//Or just an element to check if in DOM before runnning Animate
 
 	        camera = new THREE.PerspectiveCamera( 70, window.innerWidth / window.innerHeight, 1, 10000 );
 	        
 	        scene = new THREE.Scene();
-	        scene.background = new THREE.Color( 0xffffff );
+	        scene.background = new THREE.Color( 0xf7f7f7 );
 	        scene.fog = new THREE.Fog( 0xffffff, 100, 1000 );
 	        
 	        var light = new THREE.DirectionalLight( 0xffffff, 1 );
@@ -407,9 +545,13 @@ function ScanDistort(name){
 	        // document.addEventListener( 'touchstart', onDocumentTouchStart, false );
 	        // document.addEventListener( 'touchmove', onDocumentTouchMove, false );
 
+
+  			navButton = document.getElementById("nav-button");
+			navElement = document.getElementById("side-panel");
+
 	        window.addEventListener( 'resize', onWindowResize, false );
 	        document.addEventListener( 'mousemove', onDocumentMouseMove, false );
-	        renderer.domElement.addEventListener( 'click', onClicked, false);
+	        navButton.addEventListener( 'click', onClicked, false);
 
 
 	        initMesh(baseGeometry);
@@ -506,32 +648,69 @@ function ScanDistort(name){
 
 	function onDocumentMouseMove( event ) {
 
-				event.preventDefault();
+		event.preventDefault();
 
-				mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
-				mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
+		mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
+		mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
 
-				console.log(mouse.x);
 
 	}
 
 	function onClicked(event){
 		console.log("click");
 
-		dir = (dir == -1)? 1:-1;
-
-	  	var nT = gpuCompute.createTexture();
-	  	newNormalTexture(nT,10*dir);
-
-	  	velocityUniforms.normals.value = nT;
-		pUniforms.normals.value = nT;
+		navElement.classList.toggle("open");
 
 
 	}
 
+
+    function morphMesh(e){
+    	console.log(e.target.getAttribute("category"));
+
+    	document.querySelectorAll(".hud a").forEach(function(element){
+		  element.classList.remove("active");
+		});
+
+		e.target.classList.add("active");
+
+		injectTagData(e.target.getAttribute("category"),e.target.getAttribute("tag"));
+
+    	switch(e.target.getAttribute("tag")){
+    		case "expand" :
+    			dir = 1;
+    			break;
+    		case "contract" :
+				dir = -1;
+    			break;
+    		default:
+    			console.log("No action case found.");
+    			break;
+    	}
+
+		
+
+		//pseudo 
+		//store the old dtNormal image and additively add new stuff
+		//have a revert old model option too    	
+
+	  	var nT = gpuCompute.createTexture();
+	  	newNormalTexture(nT,1*dir);
+
+	  	velocityUniforms.normals.value = nT;
+		pUniforms.normals.value = nT;
+
+		velocityUniforms.u_noffset.value = 1.0;
+    }
+
+
+
+
 	return {
 		getName: getName,
 		getMesh: getMesh,
+		addData: addData,
+		dataAdded: dataAdded,
 		init: init,
 		initMesh: initMesh,
 		animate: animate,

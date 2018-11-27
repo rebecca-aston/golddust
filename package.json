@@ -12,5 +12,9 @@
   "license": "ISC",
   "devDependencies": {
     "nanogen": "^0.4.2"
+  },
+  "dependencies": {
+    "event-stream": "^3.3.4",
+    "live-server": "^1.2.1"
   }
 }
