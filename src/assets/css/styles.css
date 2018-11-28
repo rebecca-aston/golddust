@@ -146,18 +146,25 @@ nav a.active{
   z-index: 0;
 }
 
-#nav-button{
+.round-button{
   position: absolute;
-  bottom: 30px;
-  left: -80px;
   width: 40px;
   height: 40px;
   margin: 20px;
+  bottom: 30px;
   background-color: #ffffffe6;
   border: solid 2px #a78d00;
   z-index: 20;
   border-radius: 50%;
   cursor: pointer;
+}
+
+#download-button{
+  right: 0px;
+}
+
+#nav-button{
+  left: -80px;
 }
 
 #nav-button:before{
@@ -171,6 +178,33 @@ nav a.active{
   border-radius: 15%;
   transform: rotate(-45deg);
 }
+
+#download-button:before{
+  content: " ";
+  position: absolute;
+  display: block;
+  border-left: solid 3px #a78d00;
+  border-top: solid 3px #a78d00;
+  width: 30%;
+  height: 30%;
+  margin: 35% 32%;
+  border-radius: 15%;
+  transform: rotate(225deg);
+}
+#download-button:after{
+  content: " ";
+  position: absolute;
+  display: block;
+  border-left: solid 3px #a78d00;
+  border-top: solid 3px #a78d00;
+  width: 30%;
+  height: 30%;
+  margin: 20% 32%;
+  border-radius: 15%;
+  transform: rotate(225deg);
+}
+
+
 #side-panel.open #nav-button:before{
     margin: 30%;
     border-radius: 15%;
@@ -370,7 +404,7 @@ body[state="flow"] #sketch canvas{
   border-right:solid 1px #333;
 }
 .main{
-  margin-top: 40px;
+  margin: 40px 0 100px 0;
 }
 
 #info-area{
@@ -454,8 +488,10 @@ body[state="flow"] #sketch canvas{
     width:100%;
     right:-100%;
   }
-  #nav-button{
+  .round-button{
     bottom: 50px;
+  }
+  #nav-button{
     transition:left .5s;
     left:-70px;
   }

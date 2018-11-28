@@ -214,7 +214,6 @@ function sortData(){
       for(subKey in tags[key]){
         if(dataArray[i].tags.includes(subKey)){
           tags[key][subKey].push(dataArray[i]);
-          console.log(dataArray[i].quote)
         }
       }
     }

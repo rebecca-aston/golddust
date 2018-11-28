@@ -13,11 +13,11 @@ function ScanDistort(name){
   	var normalVariable;
   	var positionUniforms;
   	var velocityUniforms;
-  	var dtNormal;
+  	var dtNormal, dtPosition;
 
   	var scanUniforms,pUniforms;
   	var scanMesh, points;
-  	var navElement, navButton,baseHUD;
+  	var navElement, baseHUD;
   	var tags;
   	var buttons = [
   		{text:"expand",action:"expand"},
@@ -35,12 +35,14 @@ function ScanDistort(name){
 		gpuCompute = new GPUComputationRenderer( WIDTH, WIDTH, renderer );
 		var computeShaders = getComputeShaders();
 
-		var dtPosition = gpuCompute.createTexture();
+		dtPosition = gpuCompute.createTexture();
 		var dtVelocity = gpuCompute.createTexture();
 		dtNormal = gpuCompute.createTexture();
 		fillPositionTexture( dtPosition );
 		fillVelocityTexture( dtVelocity );
 		fillNormalTexture( dtNormal );
+
+		console.log(dtPosition);
 
 		velocityVariable = gpuCompute.addVariable( "textureVelocity", computeShaders.velocityCompute, dtVelocity );
 		positionVariable = gpuCompute.addVariable( "texturePosition", computeShaders.positionCompute, dtPosition );
@@ -80,6 +82,8 @@ function ScanDistort(name){
 
 		var theArray = texture.image.data;
 		var posAttribute = scanMesh.geometry.getAttribute("position");
+
+		console.log(texture);
 
 		var i = 0;//count for different item size of source array i.e. vec3 
 		for ( var k = 0, kl = theArray.length; k < kl; k += 4 ) { 
@@ -542,7 +546,7 @@ function ScanDistort(name){
 
 	        sceneInset = new THREE.Scene();
 
-	        var pGeom = new THREE.PlaneGeometry( 400,400 );
+	        var pGeom = new THREE.PlaneGeometry( 800,800 );
 	        var pMat = new THREE.MeshBasicMaterial( {color: 0xffffff});
 	        plane = new THREE.Mesh( pGeom, pMat );
 	        plane.lookAt( cameraOrtho.position );
@@ -555,12 +559,14 @@ function ScanDistort(name){
 	        // document.addEventListener( 'touchmove', onDocumentTouchMove, false );
 
 
-  			navButton = document.getElementById("nav-button");
+	        var downloadButton = document.getElementById("download-button");
+  			var navButton = document.getElementById("nav-button");
 			navElement = document.getElementById("side-panel");
 
 	        window.addEventListener( 'resize', onWindowResize, false );
 	        document.addEventListener( 'mousemove', onDocumentMouseMove, false );
 	        navButton.addEventListener( 'click', onClicked, false);
+	        downloadButton.addEventListener( 'click', download, false);
 
 
 	        initMesh(baseGeometry);
@@ -631,17 +637,13 @@ function ScanDistort(name){
         plane.material.needsUpdate = true;
         plane.material.map = gpuCompute.getCurrentRenderTarget( positionVariable ).texture;
 
-
-
-
-
         
         //3D Camera
         renderer.setViewport( 0, 0, window.innerWidth, window.innerHeight );
         renderer.render( scene, camera );
 
         //Orthographic Camera for UI laid over 3D view.
-        renderer.setViewport( -50, -50, 250, 250 );
+        renderer.setViewport( 15, 15, 140, 140 );
         renderer.render( sceneInset, cameraOrtho );
 
 	}
@@ -655,24 +657,140 @@ function ScanDistort(name){
 
 	}
 
-	function onDocumentMouseMove( event ) {
+	function onDocumentMouseMove( e ) {
 
 		event.preventDefault();
 
-		mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
-		mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
+		mouse.x = ( e.clientX / window.innerWidth ) * 2 - 1;
+		mouse.y = - ( e.clientY / window.innerHeight ) * 2 + 1;
 
 
 	}
 
-	function onClicked(event){
-		console.log("click");
+	function onClicked(e){
 
 		navElement.classList.toggle("open");
 
-
 	}
 
+	function download(e){
+		console.log("Download");
+
+		activeRender = false; // do I need this?
+
+
+
+
+		        //3D Camera
+        renderer.setViewport( 0, 0, window.innerWidth, window.innerHeight );
+        renderer.render( scene, camera );
+
+        renderer.render(scene, camera);
+	    renderer.domElement.toBlob(function(blob){
+			var a = document.createElement('a');
+			var url = URL.createObjectURL(blob);
+			a.href = url;
+			a.download = 'golddust-Render-RA-Sink.png';
+			a.click();
+	    }, 'image/png', 1.0);
+
+	    renderer.clear();
+
+	    //Need to do a whole shader that then stores everything as bytes
+	    //to then read back as floats
+
+	 //    renderer.setPixelRatio( 1 );
+  //       //Orthographic Camera for UI laid over 3D view.
+  //       renderer.setSize(512,512);
+  //       renderer.render(scene, camera);
+  //       renderer.clear();
+
+  //       renderer.setViewport(0,0, 512, 512 );
+  //       renderer.render( sceneInset, cameraOrtho );
+
+
+  //       //Now read pixel data from canvas
+
+  //       //http://concord-consortium.github.io/lab/experiments/webgl-gpgpu/script.js
+  //       //https://github.com/mrdoob/three.js/blob/master/examples/webgl_gpgpu_water.html
+
+  //       var gl = renderer.context;
+		// var pixels = new Uint8Array(gl.drawingBufferWidth * gl.drawingBufferHeight * 4);
+		// gl.readPixels(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
+	
+		// var result = new Float32Array(pixels.buffer)
+
+		// console.log(result);
+
+
+	    renderer.setPixelRatio( window.devicePixelRatio );
+	    renderer.setSize(1000,1000);
+        renderer.render(scene, camera);
+        renderer.clear();
+
+        renderer.setViewport(0,0, 1000, 1000 );
+        renderer.render( sceneInset, cameraOrtho );
+
+
+	    renderer.domElement.toBlob(function(blob){
+			var a = document.createElement('a');
+			var url = URL.createObjectURL(blob);
+			a.href = url;
+			a.download = 'golddust-VerticeData-RA-Sink.png';
+			a.click();
+	    }, 'image/png', 1.0);
+
+	    renderer.setSize(window.innerWidth,window.innerHeight);
+
+
+
+
+	 //  console.log(dtPosition);
+	  	
+	 //  	var geometry = new THREE.BufferGeometry();
+
+		// var positions = new THREE.BufferAttribute( new Float32Array( scanMesh.geometry.getAttribute('position').count * 3 ), 3 );
+		// // var normals = new THREE.BufferAttribute( new Float32Array( scanMesh.getAttribute('normal').count * 3 ), 3 );
+
+		// var pixels = new Uint8Array(WIDTH * WIDTH * 4);
+		// var texture = gpuCompute.getCurrentRenderTarget( positionVariable ).texture;
+		// console.log(texture);
+		// var textureArray = texture.image.data;
+
+		// var i = 0;//count for different item size of source array i.e. vec3 
+		// for ( var k = 0, kl = textureArray.length; k < kl; k += 4 ) { 
+
+
+		//   if(i < positions.array.length){ 
+		//     positions.array[i] = textureArray[ k  ];
+		//     positions.array[i+1] = textureArray[ k + 1 ];
+		//     positions.array[i+2] = textureArray[ k + 2 ];
+
+		//     i+=3;
+
+		//   }else{
+		//     theArray[ k  ] = 1;
+		//     theArray[ k + 1 ] = 1;
+		//     theArray[ k + 2 ] = 1;
+		//     theArray[ k + 3 ] = 0;
+		//   }
+
+		// }
+
+		// geometry.addAttribute( 'position', positions );
+		// geometry.addAttribute( 'normal', scanMesh.geometry.getAttribute('normal') );
+
+
+	    // var exporter = new THREE.STLExporter();
+		// var data = exporter.parse( mesh, { binary: true } );
+
+			
+
+	    activeRender = true;
+	    animate();
+
+
+	}
 
     function morphMesh(e){
     	console.log(e.target.getAttribute("category"));
