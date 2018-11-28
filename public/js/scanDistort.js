@@ -682,8 +682,11 @@ function ScanDistort(name){
 
 
 		        //3D Camera
+		// renderer.setSize(window.innerWidth*3,window.innerHeight*2);
         renderer.setViewport( 0, 0, window.innerWidth, window.innerHeight );
         renderer.render( scene, camera );
+
+
 
         renderer.render(scene, camera);
 	    renderer.domElement.toBlob(function(blob){
