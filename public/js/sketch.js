@@ -380,7 +380,7 @@ function init() {
     console.log( item, loaded, total );
 
     //Just for the first cannon object loaded in
-    if(item.match("canon") && document.getElementsByClassName("lds-dual-ring").length > 0){
+    if(item.match("Cannon") && document.getElementsByClassName("lds-dual-ring").length > 0){
       document.querySelectorAll("nav a").forEach(function(element){
         element.classList.remove("lds-dual-ring");
         element.classList.remove("inactive");
@@ -397,7 +397,7 @@ function init() {
 
 
   //CANON
-  loadSTL('models/canonDecimated03.stl',manager);
+  loadSTL('models/golddust-Cannon-OriginalScan-RA-Sink.stl',manager);
 
   loadData('js/json/data1.json',manager);
 

@@ -159,17 +159,19 @@
           float mag = texture2D( normals, uv ).w * u_noffset;
           
           // vUv = uv;
-          vec3 newPosition = selfPosition;
+          vec3 newPosition = vec3(0,0,0);
 
-          // if(u_noffset > 0.0){
-            vec3 forceDir = selfPosition - (selfPosition + normal* mag); //last + or - for expansion and contraction
+          if(u_noffset > 0.0){
+            newPosition = selfPosition;
+
+            vec3 forceDir = selfPosition - (selfPosition + normal * mag); //last + or - for expansion and contraction
 
             noise = 5.0 *  -.10 * turbulence( .1 * forceDir + time );
             float b = 0.5 * pnoise( 0.05 * selfPosition + vec3( time ), vec3( 100.0 ) );
             float displacement = - noise + b;
 
             newPosition = forceDir * displacement;
-          // }
+          }
 
 
 
@@ -182,6 +184,62 @@
 
           gl_FragColor = vec4( newPosition, 1.0 );//magnitude
         }
+      `,
+      encodeFloat:   
+      `
+            //Maybe have num for R / G / B
+            uniform float rgb;
+            uniform sampler2D texture;
+            // Integer to float conversion from https://stackoverflow.com/questions/17981163/webgl-read-pixels-from-floating-point-render-target
+            float shift_right( float v, float amt ) {
+              v = floor( v ) + 0.5;
+              return floor( v / exp2( amt ) );
+            }
+            float shift_left( float v, float amt ) {
+              return floor( v * exp2( amt ) + 0.5 );
+            }
+            float mask_last( float v, float bits ) {
+              return mod( v, shift_left( 1.0, bits ) );
+            }
+            float extract_bits( float num, float from, float to ) {
+              from = floor( from + 0.5 ); to = floor( to + 0.5 );
+              return mask_last( shift_right( num, from ), to - from );
+            }
+            vec4 encode_float( float val ) {
+              if ( val == 0.0 ) return vec4( 0, 0, 0, 0 );
+              float sign = val > 0.0 ? 0.0 : 1.0;
+              val = abs( val );
+              float exponent = floor( log2( val ) );
+              float biased_exponent = exponent + 127.0;
+              float fraction = ( ( val / exp2( exponent ) ) - 1.0 ) * 8388608.0;
+              float t = biased_exponent / 2.0;
+              float last_bit_of_biased_exponent = fract( t ) * 2.0;
+              float remaining_bits_of_biased_exponent = floor( t );
+              float byte4 = extract_bits( fraction, 0.0, 8.0 ) / 255.0;
+              float byte3 = extract_bits( fraction, 8.0, 16.0 ) / 255.0;
+              float byte2 = ( last_bit_of_biased_exponent * 128.0 + extract_bits( fraction, 16.0, 23.0 ) ) / 255.0;
+              float byte1 = ( sign * 128.0 + remaining_bits_of_biased_exponent ) / 255.0;
+              return vec4( byte4, byte3, byte2, byte1 );
+            }
+            void main() {
+                vec2 uv = gl_FragCoord.xy / resolution.xy;
+
+                float floatVal;
+
+                if(rgb == 1.0){
+                  floatVal = texture2D( texture, uv ).x;
+                }else if(rgb == 2.0) {
+                  floatVal = texture2D( texture, uv ).y;
+                }else{
+                  floatVal = texture2D( texture, uv ).z;
+                }
+
+
+                gl_FragColor = encode_float( floatVal );
+
+            }
+
+
       `
 
     }

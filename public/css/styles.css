@@ -404,7 +404,7 @@ body[state="flow"] #sketch canvas{
   border-right:solid 1px #333;
 }
 .main{
-  margin: 40px 0 100px 0;
+  margin: 40px 0 150px 0;
 }
 
 #info-area{
@@ -498,6 +498,8 @@ body[state="flow"] #sketch canvas{
   #side-panel.open #nav-button{
     left: 0px;
   }
-
+  #download-button{
+    display: none;
+  }
 }
 

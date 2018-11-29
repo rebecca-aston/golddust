@@ -274,7 +274,8 @@ function ScanDistort(name){
 		  var gold = new THREE.MeshStandardMaterial( {
             color: 0xa78d00,
             metalness: 0.5,
-            roughness: 0.5
+            roughness: 0.5,
+            side: THREE.DoubleSide
           } );
 
 		scanMesh = new THREE.Mesh( geometry, customPhysicalMaterial );
@@ -621,7 +622,7 @@ function ScanDistort(name){
         // }
 
 
-        if(velocityUniforms.u_noffset.value > 0.01){
+        if(velocityUniforms.u_noffset.value > 0.0){
         	velocityUniforms.u_noffset.value -= 0.01;
         }
  
@@ -659,7 +660,7 @@ function ScanDistort(name){
 
 	function onDocumentMouseMove( e ) {
 
-		event.preventDefault();
+		e.preventDefault();
 
 		mouse.x = ( e.clientX / window.innerWidth ) * 2 - 1;
 		mouse.y = - ( e.clientY / window.innerHeight ) * 2 + 1;
@@ -674,11 +675,11 @@ function ScanDistort(name){
 	}
 
 	function download(e){
-		console.log("Download");
 
 		activeRender = false; // do I need this?
 
 
+		console.log("download");
 
 
 		        //3D Camera
@@ -693,7 +694,7 @@ function ScanDistort(name){
 			var a = document.createElement('a');
 			var url = URL.createObjectURL(blob);
 			a.href = url;
-			a.download = 'golddust-Render-RA-Sink.png';
+			a.download = 'golddust-Cannon-DustRender-RA-Sink.png';
 			a.click();
 	    }, 'image/png', 1.0);
 
@@ -702,14 +703,14 @@ function ScanDistort(name){
 	    //Need to do a whole shader that then stores everything as bytes
 	    //to then read back as floats
 
-	 //    renderer.setPixelRatio( 1 );
-  //       //Orthographic Camera for UI laid over 3D view.
-  //       renderer.setSize(512,512);
-  //       renderer.render(scene, camera);
-  //       renderer.clear();
+	    // renderer.setPixelRatio( 1 );
+     //    //Orthographic Camera for UI laid over 3D view.
+     //    renderer.setSize(512,512);
+     //    renderer.render(scene, camera);
+     //    renderer.clear();
 
-  //       renderer.setViewport(0,0, 512, 512 );
-  //       renderer.render( sceneInset, cameraOrtho );
+     //    renderer.setViewport(0,0, 512, 512 );
+     //    renderer.render( sceneInset, cameraOrtho );
 
 
   //       //Now read pixel data from canvas
@@ -717,13 +718,63 @@ function ScanDistort(name){
   //       //http://concord-consortium.github.io/lab/experiments/webgl-gpgpu/script.js
   //       //https://github.com/mrdoob/three.js/blob/master/examples/webgl_gpgpu_water.html
 
-  //       var gl = renderer.context;
-		// var pixels = new Uint8Array(gl.drawingBufferWidth * gl.drawingBufferHeight * 4);
-		// gl.readPixels(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
-	
-		// var result = new Float32Array(pixels.buffer)
 
-		// console.log(result);
+		var encodeFloat = gpuCompute.createShaderMaterial( getComputeShaders().encodeFloat, {
+			rgb : {value: 1.0}, // 1.0 = x val, 2.0 = y val, else z
+			texture: { value: gpuCompute.getCurrentRenderTarget( positionVariable ).texture }
+		} );
+
+		var encodeRenderTarget = new THREE.WebGLRenderTarget( 512, 512, {
+			wrapS: THREE.ClampToEdgeWrapping,
+			wrapT: THREE.ClampToEdgeWrapping,
+			minFilter: THREE.NearestFilter,
+			magFilter: THREE.NearestFilter,
+			format: THREE.RGBAFormat,
+			type: THREE.UnsignedByteType,
+			stencilBuffer: false,
+			depthBuffer: false
+		} );
+
+		var gl = renderer.context;
+
+
+		//Encode the x postiion floats
+		gpuCompute.doRenderTarget( encodeFloat, encodeRenderTarget );
+
+		var xPixels = new Uint8Array(WIDTH * WIDTH * 4);
+		gl.readPixels(0, 0, WIDTH, WIDTH, gl.RGBA, gl.UNSIGNED_BYTE, xPixels);
+	
+
+		console.log(gl.drawingBufferWidth, gl.drawingBufferHeight, gl.drawingBufferWidth * gl.drawingBufferHeight * 4 );
+
+
+		var x = new Float32Array(xPixels.buffer);
+
+
+		//Encode the y postiion floats
+		encodeFloat.uniforms.rgb.value = 2.0;
+
+		gpuCompute.doRenderTarget( encodeFloat, encodeRenderTarget );
+
+		var yPixels = new Uint8Array(WIDTH* WIDTH * 4);
+		gl.readPixels(0, 0, WIDTH, WIDTH, gl.RGBA, gl.UNSIGNED_BYTE, yPixels);
+	
+		var y = new Float32Array(yPixels.buffer);
+
+
+		//Encode the z position floats
+		encodeFloat.uniforms.rgb.value = 3.0;
+
+		gpuCompute.doRenderTarget( encodeFloat, encodeRenderTarget );
+
+		var zPixels = new Uint8Array(WIDTH * WIDTH * 4);
+		gl.readPixels(0, 0, WIDTH, WIDTH, gl.RGBA, gl.UNSIGNED_BYTE, zPixels);
+	
+		var z = new Float32Array(zPixels.buffer);
+
+		// console.log(x, y, z);
+
+		gl.finish();
 
 
 	    renderer.setPixelRatio( window.devicePixelRatio );
@@ -739,7 +790,7 @@ function ScanDistort(name){
 			var a = document.createElement('a');
 			var url = URL.createObjectURL(blob);
 			a.href = url;
-			a.download = 'golddust-VerticeData-RA-Sink.png';
+			a.download = 'golddust-Cannon-VerticeData2D-RA-Sink.png';
 			a.click();
 	    }, 'image/png', 1.0);
 
@@ -747,48 +798,70 @@ function ScanDistort(name){
 
 
 
+	    //Original scan
+  //   	var a = document.createElement('a');
+		// a.href = '/models/golddust-Cannon-OriginalScan-RA-Sink.stl';
+		// a.download = 'golddust-Cannon-OriginalScan-RA-Sink.stl';
+		// a.click();
+
+
+
 
 	 //  console.log(dtPosition);
 	  	
-	 //  	var geometry = new THREE.BufferGeometry();
+	  	var geometry = new THREE.BufferGeometry();
 
-		// var positions = new THREE.BufferAttribute( new Float32Array( scanMesh.geometry.getAttribute('position').count * 3 ), 3 );
-		// // var normals = new THREE.BufferAttribute( new Float32Array( scanMesh.getAttribute('normal').count * 3 ), 3 );
+		var positions = new THREE.BufferAttribute( new Float32Array( scanMesh.geometry.getAttribute('position').count * 3 ), 3 );
+		// var normals = new THREE.BufferAttribute( new Float32Array( scanMesh.getAttribute('normal').count * 3 ), 3 );
 
-		// var pixels = new Uint8Array(WIDTH * WIDTH * 4);
-		// var texture = gpuCompute.getCurrentRenderTarget( positionVariable ).texture;
-		// console.log(texture);
-		// var textureArray = texture.image.data;
-
-		// var i = 0;//count for different item size of source array i.e. vec3 
-		// for ( var k = 0, kl = textureArray.length; k < kl; k += 4 ) { 
+		for ( var i = 0; i < scanMesh.geometry.getAttribute('position').count; i ++ ) { 
+				positions.array[i*3] = x[i];
+			    positions.array[i*3+1] = y[i];
+			    positions.array[i*3+2] = z[i];
 
 
-		//   if(i < positions.array.length){ 
-		//     positions.array[i] = textureArray[ k  ];
-		//     positions.array[i+1] = textureArray[ k + 1 ];
-		//     positions.array[i+2] = textureArray[ k + 2 ];
+		}
 
-		//     i+=3;
+		geometry.addAttribute( 'position', positions );
+		geometry.addAttribute( 'normal', scanMesh.geometry.getAttribute('normal') );
 
-		//   }else{
-		//     theArray[ k  ] = 1;
-		//     theArray[ k + 1 ] = 1;
-		//     theArray[ k + 2 ] = 1;
-		//     theArray[ k + 3 ] = 0;
-		//   }
+		var gold = new THREE.MeshStandardMaterial( {
+	        color: 0xa78d00,
+	        metalness: 0.5,
+	        roughness: 0.5,
+	        side: THREE.DoubleSide
+	      } );
 
-		// }
-
-		// geometry.addAttribute( 'position', positions );
-		// geometry.addAttribute( 'normal', scanMesh.geometry.getAttribute('normal') );
+		var exportMesh = new THREE.Mesh( geometry, gold );
 
 
-	    // var exporter = new THREE.STLExporter();
-		// var data = exporter.parse( mesh, { binary: true } );
+		// console.log(exportMesh);
+		// scene.add(exportMesh);
 
-			
+	    var exporter = new THREE.STLExporter();
+	    // var exporter =  new THREE.PLYExporter();
+		var data = exporter.parse( exportMesh, { binary: true } );
 
+
+
+		//?????
+		var blob = new Blob([data], {'type': 'application/octet-stream'});
+		var url = URL.createObjectURL(blob);
+
+		var dA = document.createElement('a');
+		dA.href = url;
+		dA.download = 'golddust-Cannon-FracturedObject-RA-Sink.stl';
+		dA.click();
+
+		// console.log(url);
+
+		//TEXT
+		// var tA = document.createElement("a");
+		// var file = new Blob(["HELLO \n you new line"], {type: 'text/plain'});
+		// tA.href = URL.createObjectURL(file);
+		// tA.download = 'golddust-Cannon-Text-RA-Sink.txt';
+		// tA.click();
+	
 	    activeRender = true;
 	    animate();
 
