@@ -1,5 +1,5 @@
 function ScanDistort(name){
-	var WIDTH = 512;
+	var WIDTH = 256;//
 
 	var initialized = false;
 	var activeRender = false;
@@ -210,20 +210,74 @@ function ScanDistort(name){
 	}
 
   	function initMesh(baseGeometry) {
+
+
+
+		baseGeometry = new THREE.Geometry().fromBufferGeometry( baseGeometry );
+        baseGeometry.computeFaceNormals();              
+        baseGeometry.mergeVertices()
+        baseGeometry.computeVertexNormals();
+
+        // console.log(baseGeometry, baseGeometry.faces.length, baseGeometry.vertices.length);
   		
 		var geometry = new THREE.BufferGeometry();
 
 
-		//var points = new etc 
+
+
+		var references = new THREE.BufferAttribute( new Float32Array( baseGeometry.vertices.length * 2 ), 2 ); // x and y coordinates of the texel associated to a particular vertex.
+		var magnitudes = new THREE.BufferAttribute( new Float32Array( baseGeometry.vertices.length ), 1 );
+		var positions = new THREE.BufferAttribute( new Float32Array( baseGeometry.vertices.length * 3 ), 3 );
+		var normals = new THREE.BufferAttribute( new Float32Array( baseGeometry.vertices.length * 3 ), 3 );
+		// var indices = new THREE.BufferAttribute( new Float32Array( baseGeometry.faces.length * 3 ), 3 );
+		var indices = [];
+
+
+		for(var i = 0; i < baseGeometry.vertices.length; i++){
+			positions.array[i*3] = baseGeometry.vertices[i].x;
+			positions.array[i*3+1] = baseGeometry.vertices[i].y;
+			positions.array[i*3+2] = baseGeometry.vertices[i].z;
+		}
+
+
+
+		for(var i = 0; i < baseGeometry.faces.length; i++){
+			indices.push(baseGeometry.faces[i].a);
+			indices.push(baseGeometry.faces[i].b);
+			indices.push(baseGeometry.faces[i].c);
+
+			normals.array[baseGeometry.faces[i].a*3] = baseGeometry.faces[i].vertexNormals[0].x;
+			normals.array[baseGeometry.faces[i].a*3+1] = baseGeometry.faces[i].vertexNormals[0].y;
+			normals.array[baseGeometry.faces[i].a*3+2] = baseGeometry.faces[i].vertexNormals[0].z;
+
+			normals.array[baseGeometry.faces[i].b*3] = baseGeometry.faces[i].vertexNormals[1].x;
+			normals.array[baseGeometry.faces[i].b*3+1] = baseGeometry.faces[i].vertexNormals[1].y;
+			normals.array[baseGeometry.faces[i].b*3+2] = baseGeometry.faces[i].vertexNormals[1].z;
+
+			normals.array[baseGeometry.faces[i].c*3] = baseGeometry.faces[i].vertexNormals[2].x;
+			normals.array[baseGeometry.faces[i].c*3+1] = baseGeometry.faces[i].vertexNormals[2].y;
+			normals.array[baseGeometry.faces[i].c*3+2] = baseGeometry.faces[i].vertexNormals[2].z;
+		}
+
+		geometry.addAttribute( 'position', positions );
+		geometry.addAttribute( 'reference', references );
+		geometry.addAttribute( 'normal', normals );
+		geometry.addAttribute( 'magnitude', magnitudes ); //? am I using this
+		geometry.setIndex(indices);
+
+
+
+		// var geometry = new THREE.BufferGeometry();
+		// //var points = new etc 
 
 			
-		var references = new THREE.BufferAttribute( new Float32Array( baseGeometry.getAttribute('position').count * 2 ), 2 ); // x and y coordinates of the texel associated to a particular vertex.
-		var magnitudes = new THREE.BufferAttribute( new Float32Array( baseGeometry.getAttribute('position').count ), 1 );
+		// var references = new THREE.BufferAttribute( new Float32Array( baseGeometry.getAttribute('position').count * 2 ), 2 ); // x and y coordinates of the texel associated to a particular vertex.
+		// var magnitudes = new THREE.BufferAttribute( new Float32Array( baseGeometry.getAttribute('position').count ), 1 );
 
-		geometry.addAttribute( 'position', baseGeometry.getAttribute('position') );
-		geometry.addAttribute( 'reference', references );
-		geometry.addAttribute( 'normal', baseGeometry.getAttribute('normal') );
-		geometry.addAttribute( 'magnitude', magnitudes ); //? am I using this
+		// geometry.addAttribute( 'position', baseGeometry.getAttribute('position') );
+		// geometry.addAttribute( 'reference', references );
+		// geometry.addAttribute( 'normal', baseGeometry.getAttribute('normal') );
+		// geometry.addAttribute( 'magnitude', magnitudes ); //? am I using this
 
 
 		// var pointsReferences = new THREE.BufferAttribute( new Float32Array( (baseGeometry.getAttribute('position').count / 3) * 2 ), 2 ); // x and y coordinates of the texel associated to a particular vertex.
@@ -257,6 +311,7 @@ function ScanDistort(name){
 
 		console.log(geometry);
 
+
 		var shader = getCustomShader();
 		var tShader = getTranslucentShader();
 
@@ -281,7 +336,7 @@ function ScanDistort(name){
 		scanMesh = new THREE.Mesh( geometry, customPhysicalMaterial );
 		// scanMesh.rotation.y = Math.PI / 2;
 		// scanMesh.position.set( -10, - 5, 0 );
-        scanMesh.rotation.set( -Math.PI/2, 0, 0 );
+        // scanMesh.rotation.set( -Math.PI/2, 0, 0 );
 		scanMesh.matrixAutoUpdate = false;
 		scanMesh.updateMatrix();
 
@@ -304,7 +359,7 @@ function ScanDistort(name){
 
         points = new THREE.Points( geometry, pointsMaterial );
         // points.position.set( -10, - 5, 0 );
-        points.rotation.set( -Math.PI/2, 0, 0 );
+        // points.rotation.set( -Math.PI/2, 0, 0 );
 
 		mouse = new THREE.Vector2();
 
@@ -724,7 +779,7 @@ function ScanDistort(name){
 			texture: { value: gpuCompute.getCurrentRenderTarget( positionVariable ).texture }
 		} );
 
-		var encodeRenderTarget = new THREE.WebGLRenderTarget( 512, 512, {
+		var encodeRenderTarget = new THREE.WebGLRenderTarget( WIDTH, WIDTH, {
 			wrapS: THREE.ClampToEdgeWrapping,
 			wrapT: THREE.ClampToEdgeWrapping,
 			minFilter: THREE.NearestFilter,
@@ -809,7 +864,7 @@ function ScanDistort(name){
 
 	 //  console.log(dtPosition);
 	  	
-	  	var geometry = new THREE.BufferGeometry();
+	  	// var geometry = new THREE.BufferGeometry();
 
 		var positions = new THREE.BufferAttribute( new Float32Array( scanMesh.geometry.getAttribute('position').count * 3 ), 3 );
 		// var normals = new THREE.BufferAttribute( new Float32Array( scanMesh.getAttribute('normal').count * 3 ), 3 );
@@ -822,8 +877,11 @@ function ScanDistort(name){
 
 		}
 
-		geometry.addAttribute( 'position', positions );
-		geometry.addAttribute( 'normal', scanMesh.geometry.getAttribute('normal') );
+		scanMesh.geometry.addAttribute( 'position', positions );
+
+		// geometry.addAttribute( 'position', positions );
+		// geometry.addAttribute( 'normal', scanMesh.geometry.getAttribute('normal') );
+		// geometry.setIndex(scanMesh.geometry.index.array);
 
 		var gold = new THREE.MeshStandardMaterial( {
 	        color: 0xa78d00,
@@ -832,11 +890,13 @@ function ScanDistort(name){
 	        side: THREE.DoubleSide
 	      } );
 
-		var exportMesh = new THREE.Mesh( geometry, gold );
+		var exportMesh = new THREE.Mesh( scanMesh.geometry, gold );
+		// exportMesh.drawMode = THREE.TriangleStripDrawMode;
+
 
 
 		// console.log(exportMesh);
-		// scene.add(exportMesh);
+		scene.add(exportMesh);
 
 	    var exporter = new THREE.STLExporter();
 	    // var exporter =  new THREE.PLYExporter();

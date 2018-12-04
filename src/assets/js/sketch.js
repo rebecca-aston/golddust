@@ -136,7 +136,7 @@ function loadSTL(path,manager){
 
     var mesh = new THREE.Mesh( geometry, gold );
     // mesh.position.set( -10, - 5, 0 );
-    mesh.rotation.set( -Math.PI/2, 0, 0 );
+    // mesh.rotation.set( -Math.PI/2, 0, 0 );
     mesh.scale.set( 1, 1, 1);
     mesh.castShadow = true;
     mesh.receiveShadow = true;
@@ -163,7 +163,7 @@ function loadSTL(path,manager){
 
     var points = new THREE.Points( geometry, pointsMaterial );
     // points.position.set( -10, - 5, 0 );
-    points.rotation.set( -Math.PI/2, 0, 0 );
+    // points.rotation.set( -Math.PI/2, 0, 0 );
 
     points.name = currentObject+"Points";
     objs.push(points);
@@ -309,7 +309,7 @@ function changeThreeState(state){
     }
 
     if(state == "shape"){
-      scene.children[3].position.x = 10;
+      // scene.children[3].position.x = 10;
       camera.position.x = 20;
       camera.position.z = 110;
       animateCamera = false;
