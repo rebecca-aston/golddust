@@ -18,7 +18,7 @@ function ScanDistort(name){
   	var scanUniforms,pUniforms;
   	var scanMesh, points; // points will serve as having the original 
   	var navElement, baseHUD;
-  	var dataArray;
+  	var dataArray,bucketSize;
   	var tags = {
 	  value:{
 	    social:[],
@@ -145,29 +145,24 @@ function ScanDistort(name){
 		}
 	}
 
-	function newNormalTexture( texture, val) { //maybe bering back index
+	function newNormalTexture( texture, category, tag) { //maybe bering back index
 
 		var theArray = texture.image.data;
-		var posAttribute = scanMesh.geometry.getAttribute("normal");
+		var normalAttribute = scanMesh.geometry.getAttribute("normal");
 		var magAttribute = scanMesh.geometry.getAttribute("magnitude");
+		var indices = scanMesh.geometry.index.array;
 
-		var i = 0;//count for different item size of source array i.e. vec3 
-		for ( var k = 0, kl = theArray.length; k < kl; k += 4 ) { 
+		var c = 0;//count for different item size of source array i.e. vec3 
+		for ( var k = 0; k < theArray.length; k += 4 ) { 
 
+		  if(c < normalAttribute.array.length){ 
+		    theArray[ k  ] = normalAttribute.array[c];
+		    theArray[ k + 1 ] = normalAttribute.array[c+1];
+		    theArray[ k + 2 ] = normalAttribute.array[c+2];
 
-		  if(i < posAttribute.array.length){ 
-		    theArray[ k  ] = posAttribute.array[i];
-		    theArray[ k + 1 ] = posAttribute.array[i+1];
-		    theArray[ k + 2 ] = posAttribute.array[i+2];
-
-		    // if(k > index-10000 && k < index+10000){
-		    // 	console.log(k);
-		    // 	theArray[ k + 3 ] = 10;
-		    // }else{
-		    	theArray[ k + 3 ] = val;
-		    // }
+		   	theArray[ k + 3 ] = 0.2;
 		    
-		    i+=3;
+		    c+=3;
 
 		  }else{
 		    theArray[ k  ] = 1;
@@ -176,6 +171,30 @@ function ScanDistort(name){
 		    theArray[ k + 3 ] = 1;
 		  }
 
+		}
+
+		//Range
+		//(this - in_min) * (out_max - out_min) / (in_max - in_min) + out_min
+		//
+
+		// using the indices 
+		// so doing this for faces
+		// the indice will represent the j *4+3
+		// for every three indices apply the same ammount ? or try this other way first
+
+
+		for(var i = 0; i < tags[category][tag].length; i++){
+			var pIndex = tags[category][tag][i].pIndex;
+			var min = pIndex - Math.floor(bucketSize/2);
+			var max = pIndex + Math.floor(bucketSize/2);
+			for(var j = min; j < max; j++){
+				var a = indices[j]*4;
+				if(j <= pIndex){
+					theArray[a+3] = (j - min) * (2 - 1) / (pIndex - min) + 1;
+				}else{
+					theArray[a+3] = (j - pIndex) * (1 - 2) / (max - pIndex) + 2;
+				}
+			}
 		}
 	}
 
@@ -325,6 +344,29 @@ function ScanDistort(name){
     	return scanMesh;
     }
 
+  //   function roughSpatialSort(){
+  //   	var positions = scanMesh.getAttribute("position").array;
+  //   	var firstPoint = new THREE.Vector3(positions[0],positions[1],positions[2]);
+		// var indices = scanMesh.index.array;
+		// var ordered
+
+
+  //   }
+
+    //for now just called on the cannon
+    function createDataBuckets(){
+    	// var pL = scanMesh.geometry.getAttribute("position").count;
+    	var pL = scanMesh.geometry.index.array.length;
+    	var dL = dataArray.length;
+    	bucketSize = Math.floor(pL/dL);
+   		var pIndex = (bucketSize%2!=0)?Math.round(bucketSize/2):bucketSize/2;
+
+   		for(var i = 0; i < dL;i++){
+   			dataArray[i]["pIndex"] = bucketSize*i+pIndex; 
+   		}
+   		console.log(pL);
+    }
+
     function sortDataTags(){
 
 		for(var i = 0; i < dataArray.length; i++){
@@ -344,6 +386,8 @@ function ScanDistort(name){
     	dataArray = d;
     	
    		sortDataTags();
+
+    	createDataBuckets();
     }
 
     function dataAdded() {
@@ -417,6 +461,7 @@ function ScanDistort(name){
     	for(var i = 0; i < tags[category][tag].length; i++){
     		var div = document.createElement('div');
     		div.classList.add("info-item");
+    		div.setAttribute("pindex",tags[category][tag][i].pIndex);
     		if(tags[category][tag][i].text != ""){
 				var p = document.createElement('p');
 				p.innerHTML = tags[category][tag][i].text;
@@ -784,17 +829,19 @@ function ScanDistort(name){
 
 		injectTagData(e.target.getAttribute("category"),e.target.getAttribute("tag"));
 
-    	switch(e.target.getAttribute("tag")){
-    		case "expand" :
-    			dir = 1;
-    			break;
-    		case "contract" :
-				dir = -1;
-    			break;
-    		default:
-    			console.log("No action case found.");
-    			break;
-    	}
+    // 	switch(e.target.getAttribute("tag")){
+    // 		case "expand" :
+    // 			dir = 1;
+    // 			break;
+    // 		case "contract" :
+				// dir = -1;
+    // 			break;
+    // 		default:
+    // 			console.log("No action case found.");
+    // 			break;
+    // 	}
+
+
 
 
 		//pseudo 
@@ -802,7 +849,7 @@ function ScanDistort(name){
 		//have a revert old model option too    	
 
 	  	var nT = gpuCompute.createTexture();
-	  	newNormalTexture(nT,1*dir);
+	  	newNormalTexture(nT,e.target.getAttribute("category"),e.target.getAttribute("tag"));
 
 	  	velocityUniforms.normals.value = nT;
 		pUniforms.normals.value = nT;
