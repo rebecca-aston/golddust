@@ -18,7 +18,17 @@ function ScanDistort(name){
   	var scanUniforms,pUniforms;
   	var scanMesh, points; // points will serve as having the original 
   	var navElement, baseHUD;
-  	var tags;
+  	var dataArray;
+  	var tags = {
+	  value:{
+	    social:[],
+	    economic:[],
+	    linguistic:[]
+	  }
+	  // exchange:{
+	  //   political:[]
+	  // }
+	};
   	var buttons = [
   		{text:"expand",action:"expand"},
   		{text:"contract",action:"contract"}
@@ -315,13 +325,29 @@ function ScanDistort(name){
     	return scanMesh;
     }
 
-    function addData(t) {
-    	tags = t;
-    	constructHTML();
+    function sortDataTags(){
+
+		for(var i = 0; i < dataArray.length; i++){
+			for(key in tags){
+			  for(subKey in tags[key]){
+			    if(dataArray[i].tags.includes(subKey)){
+			      tags[key][subKey].push(dataArray[i]);
+			    }
+			  }
+			}
+		}
+
+		constructHTML();
+	}
+
+    function addData(d) {
+    	dataArray = d;
+    	
+   		sortDataTags();
     }
 
     function dataAdded() {
-    	if(typeof tags == "undefined"){
+    	if(typeof dataArray == "undefined"){
 			return false;
     	}else{
     		return true;
@@ -441,9 +467,6 @@ function ScanDistort(name){
 		});
     }
 
-    //TODO 
-    //Add in a remove self function
-
 
 	function init(container,baseGeometry) {
 
@@ -521,7 +544,7 @@ function ScanDistort(name){
 	}	
 
 	function animate() {
-		console.log("animating");
+
 		if(activeRender){
 			requestAnimationFrame( animate );
         	render();

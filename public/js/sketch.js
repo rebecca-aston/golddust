@@ -102,17 +102,6 @@ var objStates = {
 }
 
 
-var tags = {
-  value:{
-    social:[],
-    economic:[],
-    linguistic:[]
-  }
-  // exchange:{
-  //   political:[]
-  // }
-};
-
 
 init();
 animate();
@@ -176,8 +165,7 @@ function loadSTL(path,manager){
     cannon.init(container,geometry);
 
     //push the tags object later
-    if(dataCount == dataLength && !cannon.dataAdded()) cannon.addData(tags);
-
+    if(dataCount == dataLength && !cannon.dataAdded()) cannon.addData(dataArray);
 
   } );
 
@@ -199,7 +187,9 @@ function loadData(path, manager){
       loadData(newPath,manager);
     }else if ( dataCount == dataLength){
 
-      sortData();
+      if(typeof cannon != "undefined"){
+        if(!cannon.dataAdded()) cannon.addData(dataArray); 
+      }
 
     }
 
@@ -207,23 +197,6 @@ function loadData(path, manager){
 
 }
 
-function sortData(){
-
-  for(var i = 0; i < dataArray.length; i++){
-    for(key in tags){
-      for(subKey in tags[key]){
-        if(dataArray[i].tags.includes(subKey)){
-          tags[key][subKey].push(dataArray[i]);
-        }
-      }
-    }
-  }
-
-  if(typeof cannon != "undefined"){
-    if(!cannon.dataAdded()) cannon.addData(tags); 
-  }
-
-}
 
 function addObject(name,matname,matstate){
   var obj;
