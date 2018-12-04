@@ -16,7 +16,7 @@ function ScanDistort(name){
   	var dtNormal, dtPosition;
 
   	var scanUniforms,pUniforms;
-  	var scanMesh, points;
+  	var scanMesh, points; // points will serve as having the original 
   	var navElement, baseHUD;
   	var tags;
   	var buttons = [
@@ -46,7 +46,6 @@ function ScanDistort(name){
 
 		velocityVariable = gpuCompute.addVariable( "textureVelocity", computeShaders.velocityCompute, dtVelocity );
 		positionVariable = gpuCompute.addVariable( "texturePosition", computeShaders.positionCompute, dtPosition );
-		// normalVariable = gpuCompute.addVariable( "textureNormal", document.getElementById( 'fragmentShaderPosition' ).textContent, dtPosition );
 
 		gpuCompute.setVariableDependencies( velocityVariable, [ positionVariable, velocityVariable ] );
 		gpuCompute.setVariableDependencies( positionVariable, [ positionVariable, velocityVariable ] );
@@ -81,7 +80,7 @@ function ScanDistort(name){
 	function fillPositionTexture( texture ) {
 
 		var theArray = texture.image.data;
-		var posAttribute = scanMesh.geometry.getAttribute("position");
+		var posAttribute = points.geometry.getAttribute("position");
 
 		console.log(texture);
 
@@ -124,13 +123,6 @@ function ScanDistort(name){
 		    theArray[ k + 2 ] = posAttribute.array[i+2];
 		    theArray[ k + 3 ] = magAttribute.array[i/3];
 
-		    // if(i < posAttribute.array.length/2){
-		    //   theArray[ k + 3 ] = .1;
-		    // }else{
-		    //   theArray[ k + 3 ] = .1;
-		    // }
-		      
-
 		    i+=3;
 
 		  }else{
@@ -165,14 +157,6 @@ function ScanDistort(name){
 		    	theArray[ k + 3 ] = val;
 		    // }
 		    
-
-		    // if(i < posAttribute.array.length/2){
-		    //   theArray[ k + 3 ] = val;
-		    // }else{
-		    //   theArray[ k + 3 ] = .1;
-		    // }
-		      
-
 		    i+=3;
 
 		  }else{
@@ -191,15 +175,6 @@ function ScanDistort(name){
 
 		for ( var k = 0, kl = theArray.length; k < kl; k += 4 ) {
 
-		  var x = Math.random() - 0.5;
-		  var y = Math.random() - 0.5;
-		  var z = Math.random() - 0.5;
-
-		  // theArray[ k + 0 ] = x ;
-		  // theArray[ k + 1 ] = y ;
-		  // theArray[ k + 2 ] = z ;
-		  // theArray[ k + 3 ] = 1;
-
 		  theArray[ k + 0 ] = 0 ;
 		  theArray[ k + 1 ] = 0 ;
 		  theArray[ k + 2 ] = 0 ;
@@ -211,35 +186,26 @@ function ScanDistort(name){
 
   	function initMesh(baseGeometry) {
 
-
-
+  		// Convert to Geometry to make use of mergeVertices functionality
 		baseGeometry = new THREE.Geometry().fromBufferGeometry( baseGeometry );
         baseGeometry.computeFaceNormals();              
         baseGeometry.mergeVertices()
         baseGeometry.computeVertexNormals();
 
-        // console.log(baseGeometry, baseGeometry.faces.length, baseGeometry.vertices.length);
-  		
+		// Build indexed Buffer Geometry based off of faces of Geometry	
 		var geometry = new THREE.BufferGeometry();
-
-
-
 
 		var references = new THREE.BufferAttribute( new Float32Array( baseGeometry.vertices.length * 2 ), 2 ); // x and y coordinates of the texel associated to a particular vertex.
 		var magnitudes = new THREE.BufferAttribute( new Float32Array( baseGeometry.vertices.length ), 1 );
 		var positions = new THREE.BufferAttribute( new Float32Array( baseGeometry.vertices.length * 3 ), 3 );
 		var normals = new THREE.BufferAttribute( new Float32Array( baseGeometry.vertices.length * 3 ), 3 );
-		// var indices = new THREE.BufferAttribute( new Float32Array( baseGeometry.faces.length * 3 ), 3 );
 		var indices = [];
-
 
 		for(var i = 0; i < baseGeometry.vertices.length; i++){
 			positions.array[i*3] = baseGeometry.vertices[i].x;
 			positions.array[i*3+1] = baseGeometry.vertices[i].y;
 			positions.array[i*3+2] = baseGeometry.vertices[i].z;
 		}
-
-
 
 		for(var i = 0; i < baseGeometry.faces.length; i++){
 			indices.push(baseGeometry.faces[i].a);
@@ -266,83 +232,47 @@ function ScanDistort(name){
 		geometry.setIndex(indices);
 
 
-
-		// var geometry = new THREE.BufferGeometry();
-		// //var points = new etc 
-
-			
-		// var references = new THREE.BufferAttribute( new Float32Array( baseGeometry.getAttribute('position').count * 2 ), 2 ); // x and y coordinates of the texel associated to a particular vertex.
-		// var magnitudes = new THREE.BufferAttribute( new Float32Array( baseGeometry.getAttribute('position').count ), 1 );
-
-		// geometry.addAttribute( 'position', baseGeometry.getAttribute('position') );
-		// geometry.addAttribute( 'reference', references );
-		// geometry.addAttribute( 'normal', baseGeometry.getAttribute('normal') );
-		// geometry.addAttribute( 'magnitude', magnitudes ); //? am I using this
-
-
-		// var pointsReferences = new THREE.BufferAttribute( new Float32Array( (baseGeometry.getAttribute('position').count / 3) * 2 ), 2 ); // x and y coordinates of the texel associated to a particular vertex.
-		// var pointsPositions = new THREE.BufferAttribute( new Float32Array( (baseGeometry.getAttribute('position').count / 3) * 3 ), 3 );
-		// points.addAttribute( 'position', pointsPositions); //DOn't even really need to init point pos
-		// points.addAttribute( 'reference', pointsReferences );
-
-		//create points index ref
-
 		for( var v = 0; v < geometry.getAttribute('position').count; v++ ) {
 		  var i = ~~(v);
 		  var x = (i % WIDTH) / WIDTH; 
 		  var y = ~~(i / WIDTH) / WIDTH;
 
-
 		  references.array[ v * 2    ] = x; 
 		  references.array[ v * 2 + 1 ] = y;
 
 		  magnitudes.array[v] = 0;
-		  		  //need to grab this reference for only every first point of three
-		  //and add them to a shorter reference array on the point material
-		  // if(i%3 == 0){
-		  	// for points index ref, just need to figure out the pot length of 
-		  	// i think it's position.count * 4 --> so v*4 give first r (of rgbw) of all verts	
-		  	// so yes when i%3 == 0  -> pointsIndexRef[ figure out ] = v * 4
-
-		  // 	pointsReferences.array[ figure out  ] = x; 
-		  // 	pointsReferences.array[ figure out   ] = y;
-		  // }
 		}
 
-		console.log(geometry);
 
+		//Bring back if not using points but solid shader
+		// var shader = getCustomShader();
+		// var tShader = getTranslucentShader();
 
-		var shader = getCustomShader();
-		var tShader = getTranslucentShader();
+		// scanUniforms = THREE.UniformsUtils.merge([tShader.uniforms, shader.uniforms]);
 
-		scanUniforms = THREE.UniformsUtils.merge([tShader.uniforms, shader.uniforms]);
+		// var customPhysicalMaterial = new THREE.ShaderMaterial( { 
+		// 	uniforms:       scanUniforms,
+		// 	vertexShader:   shader.vertexShader,
+		// 	fragmentShader: tShader.fragmentShader,
+		// 	lights: true,
+		// 	side: THREE.DoubleSide
+		// });
 
-		var customPhysicalMaterial = new THREE.ShaderMaterial( { 
-		  uniforms:       scanUniforms,
-		  vertexShader:   shader.vertexShader,
-		  fragmentShader: tShader.fragmentShader,
-		  lights: true,
-		  side: THREE.DoubleSide
-		});
+		//Normal gold for when add modified model to scene
+		var gold = new THREE.MeshStandardMaterial( {
+			color: 0xa78d00,
+			metalness: 0.5,
+			roughness: 0.5,
+			side: THREE.DoubleSide
+		} );
 
+		scanMesh = new THREE.Mesh( geometry, gold );
+		// scene.add(scanMesh);
 
-		  var gold = new THREE.MeshStandardMaterial( {
-            color: 0xa78d00,
-            metalness: 0.5,
-            roughness: 0.5,
-            side: THREE.DoubleSide
-          } );
-
-		scanMesh = new THREE.Mesh( geometry, customPhysicalMaterial );
-		// scanMesh.rotation.y = Math.PI / 2;
-		// scanMesh.position.set( -10, - 5, 0 );
-        // scanMesh.rotation.set( -Math.PI/2, 0, 0 );
-		scanMesh.matrixAutoUpdate = false;
-		scanMesh.updateMatrix();
-
+		//Points Geometry
 		var pCompShader = getComputePointShader();
 		pUniforms = pCompShader.uniforms;
-		pUniforms.u_color.value = new THREE.Vector3(0.65,0.55,0.1);//new THREE.Vector3(0.8,0.8,0.8);// new THREE.Vector3(0.65,0.55,0.1);
+		pUniforms.u_color.value = new THREE.Vector3(0.65,0.55,0.1);
 
 		pUniforms.u_resolution.value.x = 1;
 		pUniforms.u_resolution.value.y = 1;
@@ -354,39 +284,9 @@ function ScanDistort(name){
           // transparent: true
         } );
         
-        pointsMaterial.name = "pointsMaterial";
-        // mats.push(pointsMaterial);
-
         points = new THREE.Points( geometry, pointsMaterial );
-        // points.position.set( -10, - 5, 0 );
-        // points.rotation.set( -Math.PI/2, 0, 0 );
 
-		mouse = new THREE.Vector2();
-
-		// add existing points shader to a 
-		// getPointsShader function in shaders.js
-		// remove both shaders from the default.ejs
-		// use point frag
-		//AND
-		// create custom vert shader that is setting point pos from texturePosition with custom ref array
-		// plus an offset by 2 * normal from normal texture with custom ref array
-		// and point size based on a fraction of the magnitude from normal texture with custom ref array
-
-		//points shader and material etc etc
-		//points update rotation etc
-		//scene.add(points);
-
-		// scene.add(scanMesh);
 		scene.add(points);
-
-		//on click of points will need to have stored an index to the one vertex it represents
-		//so can iterate by three through the normal texture to update 
-		//all three vertices magnitude 
-		//will be super quick to grab the k index of texture
-		// always the k + 3 (w of texel in normalTexture)
-		// where k is incrementing by 4 
-		// for(int k = interactPointIndexRef, kl = interactPointIndexRef+4*3; k += 4)
-		//texArray[k(+3)] --> is the magnitude val for all three texels 
 
     } 
 
@@ -426,7 +326,6 @@ function ScanDistort(name){
     	}else{
     		return true;
     	}
-    	
     }
 
     function constructHTML(){
@@ -435,18 +334,6 @@ function ScanDistort(name){
     	baseHUD = document.createElement('div');
     	var c = document.createElement('div')
     	c.id = 'category';
-
-    	
-    	// for(var i = 0; i < buttons.length; i++){
-    	// 	var bttn = document.createElement('a');
-    	// 	bttn.className = "hud-bttn";
-    	// 	// bttn.createAttribute("action");
-    	// 	bttn.setAttribute("action", buttons[i].action);
-    	// 	bttn.innerHTML = buttons[i].text;
-    	// 	el.append(bttn);
-    	// }
-
-    	console.log(tags);
 
 	    for(key in tags){
 
@@ -479,7 +366,6 @@ function ScanDistort(name){
 			baseHUD.append(h);
 	    }
 
-
 		baseHUD.prepend(c);
     	
     	//Slight hack in case someone navigates to dust section before json is loaded in
@@ -488,7 +374,6 @@ function ScanDistort(name){
     		injectHUD();
     	}
     	
-
     }
 
     function injectTagData(category,tag){
@@ -544,7 +429,6 @@ function ScanDistort(name){
 	    }
 
 	    var tagContainer = document.getElementById("hud-container");
-	    // tagContainer.setAttribute("category","value");
 	    tagContainer.innerHTML = "";
 	    if(typeof baseHUD != "undefined"){
 	    	tagContainer.append(baseHUD);
@@ -609,7 +493,7 @@ function ScanDistort(name){
 	        sceneInset.add(plane);
 
 	        controls = new THREE.OrbitControls( camera, renderer.domElement );
-
+	        mouse = new THREE.Vector2();
 	    
 	        // document.addEventListener( 'touchstart', onDocumentTouchStart, false );
 	        // document.addEventListener( 'touchmove', onDocumentTouchMove, false );
@@ -637,10 +521,7 @@ function ScanDistort(name){
 	}	
 
 	function animate() {
-
-		//TODO add in conditional to check if DOM element before call AnimFrame and render
-		//Or just an element to check if in DOM before runnning Animate
-
+		console.log("animating");
 		if(activeRender){
 			requestAnimationFrame( animate );
         	render();
@@ -656,36 +537,25 @@ function ScanDistort(name){
         if (delta > 1) delta = 1; // safety cap on large deltas
         last = now;
 
+		positionUniforms.time.value = now;
+		positionUniforms.delta.value = delta;   
+		velocityUniforms.time.value = Math.sin(now*0.001);
+		velocityUniforms.delta.value = delta;  
 
-        //TODO
-        //Add a degrade to u_noffset to get to 0 slowly.
-
-        //Use start for start of transition perhaps
-        // if(now - start < 5000 == true){
-      
-          positionUniforms.time.value = now;
-          positionUniforms.delta.value = delta;   
-          velocityUniforms.time.value = Math.sin(now*0.001);
-          velocityUniforms.delta.value = delta;  
-
-          scanUniforms.time.value = now;
-          scanUniforms.delta.value = delta;
-          pUniforms.time.value = now;
-          pUniforms.delta.value = delta;
-        // }else{
-          // velocityUniforms.u_noffset.value = 0.0;
-        // }
+		// scanUniforms.time.value = now;
+		// scanUniforms.delta.value = delta;
+		pUniforms.time.value = now;
+		pUniforms.delta.value = delta;
 
 
         if(velocityUniforms.u_noffset.value > 0.0){
         	velocityUniforms.u_noffset.value -= 0.01;
         }
  
-
         gpuCompute.compute();
 
-        scanUniforms.texturePosition.value = gpuCompute.getCurrentRenderTarget( positionVariable ).texture;
-        scanUniforms.textureVelocity.value = gpuCompute.getCurrentRenderTarget( velocityVariable ).texture;
+        // scanUniforms.texturePosition.value = gpuCompute.getCurrentRenderTarget( positionVariable ).texture;
+        // scanUniforms.textureVelocity.value = gpuCompute.getCurrentRenderTarget( velocityVariable ).texture;
         pUniforms.texturePosition.value = gpuCompute.getCurrentRenderTarget( positionVariable ).texture;
         pUniforms.textureVelocity.value = gpuCompute.getCurrentRenderTarget( velocityVariable ).texture;
 
@@ -729,50 +599,14 @@ function ScanDistort(name){
 
 	}
 
-	function download(e){
+	function updateMeshOnCPU(){
 
-		activeRender = false; // do I need this?
+		//Encode the gpgpu floating point textures into bytes to read into mesh.
+		//Using an encoding shader (see below). Not sure how to encode three numbers at once if at all possible
+		//But this works for now.
 
-
-		console.log("download");
-
-
-		        //3D Camera
-		// renderer.setSize(window.innerWidth*3,window.innerHeight*2);
-        renderer.setViewport( 0, 0, window.innerWidth, window.innerHeight );
-        renderer.render( scene, camera );
-
-
-
-        renderer.render(scene, camera);
-	    renderer.domElement.toBlob(function(blob){
-			var a = document.createElement('a');
-			var url = URL.createObjectURL(blob);
-			a.href = url;
-			a.download = 'golddust-Cannon-DustRender-RA-Sink.png';
-			a.click();
-	    }, 'image/png', 1.0);
-
-	    renderer.clear();
-
-	    //Need to do a whole shader that then stores everything as bytes
-	    //to then read back as floats
-
-	    // renderer.setPixelRatio( 1 );
-     //    //Orthographic Camera for UI laid over 3D view.
-     //    renderer.setSize(512,512);
-     //    renderer.render(scene, camera);
-     //    renderer.clear();
-
-     //    renderer.setViewport(0,0, 512, 512 );
-     //    renderer.render( sceneInset, cameraOrtho );
-
-
-  //       //Now read pixel data from canvas
-
-  //       //http://concord-consortium.github.io/lab/experiments/webgl-gpgpu/script.js
-  //       //https://github.com/mrdoob/three.js/blob/master/examples/webgl_gpgpu_water.html
-
+  		//http://concord-consortium.github.io/lab/experiments/webgl-gpgpu/script.js
+   		//https://github.com/mrdoob/three.js/blob/master/examples/webgl_gpgpu_water.html
 
 		var encodeFloat = gpuCompute.createShaderMaterial( getComputeShaders().encodeFloat, {
 			rgb : {value: 1.0}, // 1.0 = x val, 2.0 = y val, else z
@@ -792,17 +626,12 @@ function ScanDistort(name){
 
 		var gl = renderer.context;
 
-
 		//Encode the x postiion floats
 		gpuCompute.doRenderTarget( encodeFloat, encodeRenderTarget );
 
 		var xPixels = new Uint8Array(WIDTH * WIDTH * 4);
 		gl.readPixels(0, 0, WIDTH, WIDTH, gl.RGBA, gl.UNSIGNED_BYTE, xPixels);
 	
-
-		console.log(gl.drawingBufferWidth, gl.drawingBufferHeight, gl.drawingBufferWidth * gl.drawingBufferHeight * 4 );
-
-
 		var x = new Float32Array(xPixels.buffer);
 
 
@@ -827,10 +656,40 @@ function ScanDistort(name){
 	
 		var z = new Float32Array(zPixels.buffer);
 
-		// console.log(x, y, z);
-
 		gl.finish();
 
+
+		var positions = new THREE.BufferAttribute( new Float32Array( scanMesh.geometry.getAttribute('position').count * 3 ), 3 );
+
+		for ( var i = 0; i < scanMesh.geometry.getAttribute('position').count; i ++ ) { 
+			positions.array[i*3] = x[i];
+		    positions.array[i*3+1] = y[i];
+		    positions.array[i*3+2] = z[i];
+		}
+
+		scanMesh.geometry.addAttribute( 'position', positions );
+
+		scene.add(scanMesh);
+
+	}
+
+	function download(e){
+
+		activeRender = false; // do I need this?
+
+        renderer.setViewport( 0, 0, window.innerWidth, window.innerHeight );
+        renderer.render( scene, camera );
+
+        renderer.render(scene, camera);
+	    renderer.domElement.toBlob(function(blob){
+			var a = document.createElement('a');
+			var url = URL.createObjectURL(blob);
+			a.href = url;
+			a.download = 'golddust-Cannon-DustRender-RA-Sink.png';
+			a.click();
+	    }, 'image/png', 1.0);
+
+	    renderer.clear();
 
 	    renderer.setPixelRatio( window.devicePixelRatio );
 	    renderer.setSize(1000,1000);
@@ -851,60 +710,23 @@ function ScanDistort(name){
 
 	    renderer.setSize(window.innerWidth,window.innerHeight);
 
+		
+		//Move this to another button functionality (i.e. have an eye to see the mesh, then you choose download)
+		updateMeshOnCPU();
 
 
 	    //Original scan
-  //   	var a = document.createElement('a');
+ 	 	// var a = document.createElement('a');
 		// a.href = '/models/golddust-Cannon-OriginalScan-RA-Sink.stl';
 		// a.download = 'golddust-Cannon-OriginalScan-RA-Sink.stl';
 		// a.click();
 
 
+		var exportMesh = new THREE.Mesh( scanMesh.geometry );
 
-
-	 //  console.log(dtPosition);
-	  	
-	  	// var geometry = new THREE.BufferGeometry();
-
-		var positions = new THREE.BufferAttribute( new Float32Array( scanMesh.geometry.getAttribute('position').count * 3 ), 3 );
-		// var normals = new THREE.BufferAttribute( new Float32Array( scanMesh.getAttribute('normal').count * 3 ), 3 );
-
-		for ( var i = 0; i < scanMesh.geometry.getAttribute('position').count; i ++ ) { 
-				positions.array[i*3] = x[i];
-			    positions.array[i*3+1] = y[i];
-			    positions.array[i*3+2] = z[i];
-
-
-		}
-
-		scanMesh.geometry.addAttribute( 'position', positions );
-
-		// geometry.addAttribute( 'position', positions );
-		// geometry.addAttribute( 'normal', scanMesh.geometry.getAttribute('normal') );
-		// geometry.setIndex(scanMesh.geometry.index.array);
-
-		var gold = new THREE.MeshStandardMaterial( {
-	        color: 0xa78d00,
-	        metalness: 0.5,
-	        roughness: 0.5,
-	        side: THREE.DoubleSide
-	      } );
-
-		var exportMesh = new THREE.Mesh( scanMesh.geometry, gold );
-		// exportMesh.drawMode = THREE.TriangleStripDrawMode;
-
-
-
-		// console.log(exportMesh);
-		scene.add(exportMesh);
-
+		//Export Mesh
 	    var exporter = new THREE.STLExporter();
-	    // var exporter =  new THREE.PLYExporter();
 		var data = exporter.parse( exportMesh, { binary: true } );
-
-
-
-		//?????
 		var blob = new Blob([data], {'type': 'application/octet-stream'});
 		var url = URL.createObjectURL(blob);
 
@@ -913,9 +735,8 @@ function ScanDistort(name){
 		dA.download = 'golddust-Cannon-FracturedObject-RA-Sink.stl';
 		dA.click();
 
-		// console.log(url);
 
-		//TEXT
+		//Export TEXT
 		// var tA = document.createElement("a");
 		// var file = new Blob(["HELLO \n you new line"], {type: 'text/plain'});
 		// tA.href = URL.createObjectURL(file);
@@ -925,9 +746,10 @@ function ScanDistort(name){
 	    activeRender = true;
 	    animate();
 
-
 	}
 
+
+	//called when tag buttons are clicked
     function morphMesh(e){
     	console.log(e.target.getAttribute("category"));
 
@@ -951,7 +773,6 @@ function ScanDistort(name){
     			break;
     	}
 
-		
 
 		//pseudo 
 		//store the old dtNormal image and additively add new stuff
