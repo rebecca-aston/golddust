@@ -353,7 +353,7 @@ function ScanDistort(name){
 		var unorderedList = [];//This will just be objects with distance and original index (will then remove and just store index for speed of lookup)
 		for(var i = 0; i < scanMesh.geometry.getAttribute("position").count; i++){
 			var o = {dist:0,index:i};
-			var v3 = new THREE.Vector3(positions[i],positions[i+1],positions[i+2]);
+			var v3 = new THREE.Vector3(positions[i*3],positions[i*3+1],positions[i*3+2]);
 			o.dist = v3.distanceToSquared(firstPoint);
 			unorderedList.push(o);
 		}

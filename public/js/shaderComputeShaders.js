@@ -161,7 +161,7 @@
           // vUv = uv;
           vec3 newPosition = vec3(0,0,0);
 
-          if(u_noffset > 0.0 && selfPosition.x > 0.0){
+          if(u_noffset > 0.0 ){ //&& selfPosition.x > 0.0
             newPosition = selfPosition;
 
             vec3 forceDir = selfPosition - (selfPosition + normal * mag); //last + or - for expansion and contraction
