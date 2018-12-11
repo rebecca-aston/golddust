@@ -158,7 +158,9 @@ nav a.active{
   border-radius: 50%;
   cursor: pointer;
 }
-
+.round-button:hover{
+  background-color: #a78d00;
+}
 #download-button{
   right: 0px;
 }
@@ -178,7 +180,6 @@ nav a.active{
   border-radius: 15%;
   transform: rotate(-45deg);
 }
-
 #download-button:before{
   content: " ";
   position: absolute;
@@ -202,6 +203,13 @@ nav a.active{
   margin: 20% 32%;
   border-radius: 15%;
   transform: rotate(225deg);
+}
+#download-button:hover:before,
+#download-button:hover:after,
+#nav-button:hover:before{
+  content: " ";
+  border-left: solid 3px #f7f7f7;
+  border-top: solid 3px #f7f7f7;
 }
 
 
@@ -382,7 +390,7 @@ body[state="flow"] #sketch canvas{
 }*/
 .hud{
   width: 100%;
-  margin-top: 20px;
+  margin: 20px 0;
   display: block;
 }
 .hud.inactive{
@@ -412,18 +420,35 @@ body[state="flow"] #sketch canvas{
 }
 .info-item{
   position: relative;
-  padding: 1em;
+  padding: 0.5em 2em;
+  margin: 1em 0;
+  /*border: solid 1px #a78d00;*/
+  border: solid 1px transparent;
+  border-radius: 15px;
 }
-.info-item:before{
-  content:" ";
+#info-area[tag="social"] .info-item[tag="social"],
+#info-area[tag="linguistic"] .info-item[tag="linguistic"],
+#info-area[tag="economic"] .info-item[tag="economic"]{
+  border: solid 1px #a78d00;
+}
+.info-item span{
   position: absolute;
   top: 50%;
-  left: -10px;
-  width: 10px;
-  height: 10px;
+  left: -2.5em;
+  width: 15px;
+  height: 15px;
   margin-top: -5px;
-  background-color: #a78d00;
+  background-color: #f7f7f7;
+  border: solid 1px #a78d00;
   border-radius: 50%;
+  color: #a78d00;
+  text-align: center;
+  line-height: 15px;
+  cursor:pointer;
+} 
+.info-item span:hover{
+  background-color: #a78d00;
+  color: #f7f7f7;
 } 
 #side-panel .info-item p{
   margin: .3em 0;

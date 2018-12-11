@@ -174,18 +174,13 @@ function ScanDistort(name){
 
 		}
 
-		//Range
-		//(this - in_min) * (out_max - out_min) / (in_max - in_min) + out_min
-		//
 
-		// using the indices 
-		// so doing this for faces
-		// the indice will represent the j *4+3
-		// for every three indices apply the same ammount ? or try this other way first
+		var collection = document.getElementById("info-area").children;
 
 		// tags[category][tag].length
-		for(var i = 0; i < tags[category][tag].length; i++){
-			var pIndex = tags[category][tag][i].pIndex;
+		for(var i = 0; i < collection.length; i++){
+			// var pIndex = tags[category][tag][i].pIndex;
+			var pIndex = parseInt(collection[i].getAttribute("pindex"));
 			var min = pIndex - Math.floor(bucketSize/2);
 			var max = pIndex + Math.floor(bucketSize/2);
 			for(var j = min; j < max; j++){
@@ -198,6 +193,48 @@ function ScanDistort(name){
 				}
 			}
 		}
+	}
+
+	function subtractNodeTexture( texture, pIndex) { //maybe bering back index
+
+		var theArray = texture.image.data;
+		var normalAttribute = scanMesh.geometry.getAttribute("normal");
+		var magAttribute = scanMesh.geometry.getAttribute("magnitude");
+		// var indices = scanMesh.geometry.index.array;
+
+		var c = 0;//count for different item size of source array i.e. vec3 
+		for ( var k = 0; k < theArray.length; k += 4 ) { 
+
+		  if(c < normalAttribute.array.length){ 
+		    theArray[ k  ] = normalAttribute.array[c];
+		    theArray[ k + 1 ] = normalAttribute.array[c+1];
+		    theArray[ k + 2 ] = normalAttribute.array[c+2];
+
+		   	theArray[ k + 3 ] = 0;
+		    
+		    c+=3;
+
+		  }else{
+		    theArray[ k  ] = 1;
+		    theArray[ k + 1 ] = 1;
+		    theArray[ k + 2 ] = 1;
+		    theArray[ k + 3 ] = 1;
+		  }
+
+		}
+
+		var min = pIndex - Math.floor(bucketSize/2);
+		var max = pIndex + Math.floor(bucketSize/2);
+		for(var j = min; j < max; j++){
+			// var a = indices[j]*4;
+			var a = orderedList[j]*4;
+			if(j <= pIndex){
+				theArray[a+3] = ((j - min) * (1.5 - 0.4) / (pIndex - min) + 0.4)*-1;
+			}else{
+				theArray[a+3] = ((j - pIndex) * (0.4 - 1.5) / (max - pIndex) + 1.5)*-1;
+			}
+		}
+
 	}
 
 	function fillVelocityTexture( texture ) {
@@ -477,36 +514,53 @@ function ScanDistort(name){
 		// "quote": "",
 		// "text":"120 characters"
 		var info = document.getElementById("info-area");
-		info.innerHTML = "";
+		info.setAttribute("tag",tag);
+		// info.innerHTML = "";
+		var count = 0;
     	for(var i = 0; i < tags[category][tag].length; i++){
-    		var div = document.createElement('div');
-    		div.classList.add("info-item");
-    		div.setAttribute("pindex",tags[category][tag][i].pIndex);
-    		if(tags[category][tag][i].text != ""){
-				var p = document.createElement('p');
-				p.innerHTML = tags[category][tag][i].text;
-				div.appendChild(p);
+
+
+    		if(info.querySelectorAll('[pindex="'+tags[category][tag][i].pIndex+'"]').length == 0){
+
+    			var div = document.createElement('div');
+    			var bttn = document.createElement('span');
+	    		div.classList.add("info-item");
+	    		div.setAttribute("pindex",tags[category][tag][i].pIndex);
+	    		div.setAttribute("tag",tag);
+	    		bttn.innerHTML = "X";
+	    		div.append(bttn);
+	    		bttn.addEventListener("click",removeDataPoint,false);
+	    		if(tags[category][tag][i].text != ""){
+					var p = document.createElement('p');
+					p.innerHTML = tags[category][tag][i].text;
+					div.appendChild(p);
+	    		}
+	    		if(tags[category][tag][i].quote != ""){
+	    			var p = document.createElement('p');
+	    			p.classList.add("italic");
+	    			p.innerHTML = "'"+tags[category][tag][i].quote+"'";
+	    			div.appendChild(p);
+	    		}
+	    		if(tags[category][tag][i].citation != ""){
+	    			var p = document.createElement('p');
+					p.innerHTML = "Citation: "+tags[category][tag][i].citation;
+					p.classList.add("small");
+	    			if(tags[category][tag][i].link != ""){
+	    				var a = document.createElement('a');
+	    				a.classList.add("out-arrow");
+	    				a.setAttribute("href",tags[category][tag][i].link);
+	    				a.setAttribute("target","_blank");
+	    				p.append(a);
+	    			}
+	    			div.appendChild(p);
+	    		}
+	   			info.prepend(div);
+    		}else{
+    			count ++;
+    			
     		}
-    		if(tags[category][tag][i].quote != ""){
-    			var p = document.createElement('p');
-    			p.classList.add("italic");
-    			p.innerHTML = "'"+tags[category][tag][i].quote+"'";
-    			div.appendChild(p);
-    		}
-    		if(tags[category][tag][i].citation != ""){
-    			var p = document.createElement('p');
-				p.innerHTML = "Citation: "+tags[category][tag][i].citation;
-				p.classList.add("small");
-    			if(tags[category][tag][i].link != ""){
-    				var a = document.createElement('a');
-    				a.classList.add("out-arrow");
-    				a.setAttribute("href",tags[category][tag][i].link);
-    				a.setAttribute("target","_blank");
-    				p.append(a);
-    			}
-    			div.appendChild(p);
-    		}
-   			info.appendChild(div);
+    		console.log(count, tags[category][tag].length);
+    		if(count < tags[category][tag].length && i == tags[category][tag].length-1)  velocityUniforms.u_noffset.value = 1.0;
     	}
 
     }
@@ -547,7 +601,7 @@ function ScanDistort(name){
 	        
 	        scene = new THREE.Scene();
 	        scene.background = new THREE.Color( 0xf7f7f7 );
-	        scene.fog = new THREE.Fog( 0xffffff, 100, 1000 );
+	        // scene.fog = new THREE.Fog( 0xffffff, 100, 1000 );
 	        
 	        var light = new THREE.DirectionalLight( 0xffffff, 1 );
 	        light.position.set( 1, 1, 1 ).normalize();
@@ -555,6 +609,8 @@ function ScanDistort(name){
 	        var  light1 = new THREE.DirectionalLight( 0xffffff, .5 );
 			light1.position.set( -1, -1, -1 ).normalize();
 			scene.add( light1 );
+			var ambientLight = new THREE.AmbientLight( 0xffffff, .5 );
+  			scene.add( ambientLight );
 
 	        renderer = new THREE.WebGLRenderer();
 			  renderer.setPixelRatio( window.devicePixelRatio );
@@ -582,6 +638,8 @@ function ScanDistort(name){
 
 	        controls = new THREE.OrbitControls( camera, renderer.domElement );
 	        mouse = new THREE.Vector2();
+	        controls.minDistance = 10;
+			controls.maxDistance = 500;
 	    
 	        // document.addEventListener( 'touchstart', onDocumentTouchStart, false );
 	        // document.addEventListener( 'touchmove', onDocumentTouchMove, false );
@@ -841,42 +899,39 @@ function ScanDistort(name){
     function morphMesh(e){
     	console.log(e.target.getAttribute("category"));
 
-    	document.querySelectorAll(".hud a").forEach(function(element){
-		  element.classList.remove("active");
-		});
+    	if(!e.target.classList.contains("active")){
+    		document.querySelectorAll(".hud a").forEach(function(element){
+			  element.classList.remove("active");
+			});
 
-		e.target.classList.add("active");
+			e.target.classList.add("active");
 
-		injectTagData(e.target.getAttribute("category"),e.target.getAttribute("tag"));
-
-    // 	switch(e.target.getAttribute("tag")){
-    // 		case "expand" :
-    // 			dir = 1;
-    // 			break;
-    // 		case "contract" :
-				// dir = -1;
-    // 			break;
-    // 		default:
-    // 			console.log("No action case found.");
-    // 			break;
-    // 	}
+			injectTagData(e.target.getAttribute("category"),e.target.getAttribute("tag"));
 
 
 
+		  	var nT = gpuCompute.createTexture();
+		  	newNormalTexture(nT,e.target.getAttribute("category"),e.target.getAttribute("tag"));
 
-		//pseudo 
-		//store the old dtNormal image and additively add new stuff
-		//have a revert old model option too    	
+		  	velocityUniforms.normals.value = nT;
+			pUniforms.normals.value = nT;
 
-	  	var nT = gpuCompute.createTexture();
-	  	newNormalTexture(nT,e.target.getAttribute("category"),e.target.getAttribute("tag"));
-
-	  	velocityUniforms.normals.value = nT;
-		pUniforms.normals.value = nT;
-
-		velocityUniforms.u_noffset.value = 1.0;
+			
+    	}
+    	
     }
 
+    function removeDataPoint(e){
+    	console.log(e);
+		var nT = gpuCompute.createTexture();
+		console.log(e.target.parentElement.getAttribute("pindex"));
+		subtractNodeTexture(nT,parseInt(e.target.parentElement.getAttribute("pindex")));
+		velocityUniforms.normals.value = nT;
+		pUniforms.normals.value = nT;
+		velocityUniforms.u_noffset.value = 1.0;
+
+    	document.getElementById("info-area").removeChild(e.target.parentElement);
+    }
 
 
 
