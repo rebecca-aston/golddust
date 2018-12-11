@@ -20,6 +20,7 @@ function ScanDistort(name){
   	var navElement, baseHUD;
   	var dataArray,bucketSize;
   	var orderedList = [];
+  	var interactionCount; // This is a copy of tags, but the array for each is just first times added, second times removed
   	var tags = {
 	  value:{
 	    social:[],
@@ -52,8 +53,6 @@ function ScanDistort(name){
 		fillPositionTexture( dtPosition );
 		fillVelocityTexture( dtVelocity );
 		fillNormalTexture( dtNormal );
-
-		console.log(dtPosition);
 
 		velocityVariable = gpuCompute.addVariable( "textureVelocity", computeShaders.velocityCompute, dtVelocity );
 		positionVariable = gpuCompute.addVariable( "texturePosition", computeShaders.positionCompute, dtPosition );
@@ -92,8 +91,6 @@ function ScanDistort(name){
 
 		var theArray = texture.image.data;
 		var posAttribute = points.geometry.getAttribute("position");
-
-		console.log(texture);
 
 		var i = 0;//count for different item size of source array i.e. vec3 
 		for ( var k = 0, kl = theArray.length; k < kl; k += 4 ) { 
@@ -335,6 +332,7 @@ function ScanDistort(name){
 		} );
 
 		scanMesh = new THREE.Mesh( geometry, gold );
+		scanMesh.name = "scanMesh";
 		// scene.add(scanMesh);
 
 		//Points Geometry
@@ -353,7 +351,7 @@ function ScanDistort(name){
         } );
         
         points = new THREE.Points( geometry, pointsMaterial );
-
+        points.name = "points";
 		scene.add(points);
 
     } 
@@ -425,6 +423,7 @@ function ScanDistort(name){
     function sortDataTags(){
 
 		for(var i = 0; i < dataArray.length; i++){
+			dataArray[i]["indexOrder"] = i;
 			for(key in tags){
 			  for(subKey in tags[key]){
 			    if(dataArray[i].tags.includes(subKey)){
@@ -522,11 +521,17 @@ function ScanDistort(name){
 
     		if(info.querySelectorAll('[pindex="'+tags[category][tag][i].pIndex+'"]').length == 0){
 
+    			//Interaction tracking
+    			interactionCount[category][tag][0] += 1;
+
+    			//Content
     			var div = document.createElement('div');
     			var bttn = document.createElement('span');
 	    		div.classList.add("info-item");
 	    		div.setAttribute("pindex",tags[category][tag][i].pIndex);
 	    		div.setAttribute("tag",tag);
+	    		div.setAttribute("category",category);
+	    		div.setAttribute("order",tags[category][tag][i].indexOrder);
 	    		bttn.innerHTML = "X";
 	    		div.append(bttn);
 	    		bttn.addEventListener("click",removeDataPoint,false);
@@ -559,7 +564,7 @@ function ScanDistort(name){
     			count ++;
     			
     		}
-    		console.log(count, tags[category][tag].length);
+
     		if(count < tags[category][tag].length && i == tags[category][tag].length-1)  velocityUniforms.u_noffset.value = 1.0;
     	}
 
@@ -586,6 +591,20 @@ function ScanDistort(name){
 		});
     }
 
+    function reset(){
+		for(category in interactionCount){
+			for(tag in interactionCount[category]){
+				interactionCount[category][tag][0] = 0;
+				interactionCount[category][tag][1] = 0;
+			}
+		}
+
+		// scene.remove(scene.getObjectByName("points"));
+		scene.remove(scene.getObjectByName("scanMesh"));
+		// initComputeRenderer(); //This needs work
+
+		//!!!!
+    }
 
 	function init(container,baseGeometry) {
 
@@ -593,6 +612,14 @@ function ScanDistort(name){
 
 			console.log("Init: " + name);
 
+			interactionCount = JSON.parse(JSON.stringify(tags));
+
+			for(category in interactionCount){
+				for(tag in interactionCount[category]){
+					interactionCount[category][tag].push(0);
+					interactionCount[category][tag].push(0);
+				}
+			}
 
 			//TODO store a ref to container somehow.
 			//Or just an element to check if in DOM before runnning Animate
@@ -831,7 +858,7 @@ function ScanDistort(name){
 			var a = document.createElement('a');
 			var url = URL.createObjectURL(blob);
 			a.href = url;
-			a.download = 'golddust-Cannon-DustRender-RA-Sink.png';
+			a.download = 'golddust-Cannon-DustRender-Aston-Sink.png';
 			a.click();
 	    }, 'image/png', 1.0);
 
@@ -850,7 +877,7 @@ function ScanDistort(name){
 			var a = document.createElement('a');
 			var url = URL.createObjectURL(blob);
 			a.href = url;
-			a.download = 'golddust-Cannon-VerticeData2D-RA-Sink.png';
+			a.download = 'golddust-Cannon-VerticeData2D-Aston-Sink.png';
 			a.click();
 	    }, 'image/png', 1.0);
 
@@ -878,16 +905,56 @@ function ScanDistort(name){
 
 		var dA = document.createElement('a');
 		dA.href = url;
-		dA.download = 'golddust-Cannon-FracturedObject-RA-Sink.stl';
+		dA.download = 'golddust-Cannon-FracturedObject-Aston-Sink.stl';
 		dA.click();
 
 
 		//Export TEXT
-		// var tA = document.createElement("a");
-		// var file = new Blob(["HELLO \n you new line"], {type: 'text/plain'});
-		// tA.href = URL.createObjectURL(file);
-		// tA.download = 'golddust-Cannon-Text-RA-Sink.txt';
-		// tA.click();
+		var textString = "Gold Dust Text \n \n";
+		var indexString = "Gold Dust Bibliography \n \n";
+		var collection = document.getElementById("info-area").children;
+
+		for(var i = 0; i < collection.length; i++){
+			textString += collection[i].getElementsByClassName("italic")[0].innerHTML;
+			textString += "("+(i+1)+")\n \n";
+			var s = collection[i].getElementsByClassName("small")[0].innerHTML;
+			indexString += (i+1)+". "+s.split("Citation:")[1].split("<")[0]+"\n";
+			if(collection[i].getElementsByTagName('a').length > 0 ) indexString += collection[i].getElementsByTagName('a')[0].getAttribute('href');
+			indexString += "\n \n";
+		}
+
+		var textFile = new Blob([textString], {type: 'text/plain'});
+		var tA = document.createElement("a");
+		tA.href = URL.createObjectURL(textFile);
+		tA.download = 'golddust-Cannon-Text-Aston-Sink.txt';
+		tA.click();
+
+		var indexFile = new Blob([indexString], {type: 'text/plain'});
+		var iA = document.createElement("a");
+		iA.href = URL.createObjectURL(indexFile);
+		iA.download = 'golddust-Cannon-Bibliography-Aston-Sink.txt';
+		iA.click();
+
+
+		//Interaction Tracking
+		var interactionString = "Gold Dust Collecting \n";
+		var now = new Date();
+		interactionString += "On "+ now.toDateString()+", at "+now.toTimeString().split(" ")[0]+"\n\n";
+		for(category in interactionCount){
+			interactionString += category+": \n \n";
+			for(tag in interactionCount[category]){
+				interactionString += tag+" point added "+interactionCount[category][tag][0]+" times \n"
+				interactionString += tag+" point removed "+interactionCount[category][tag][1]+" times\n \n"
+			}
+		}
+
+
+		var collectFile = new Blob([interactionString], {type: 'text/plain'});
+		var cA = document.createElement("a");
+		cA.href = URL.createObjectURL(collectFile);
+		cA.download = 'golddust-Cannon-Collecting-Aston-Sink.txt';
+		cA.click();
+
 	
 	    activeRender = true;
 	    animate();
@@ -897,7 +964,7 @@ function ScanDistort(name){
 
 	//called when tag buttons are clicked
     function morphMesh(e){
-    	console.log(e.target.getAttribute("category"));
+    	// console.log(e.target.getAttribute("category"));
 
     	if(!e.target.classList.contains("active")){
     		document.querySelectorAll(".hud a").forEach(function(element){
@@ -922,13 +989,16 @@ function ScanDistort(name){
     }
 
     function removeDataPoint(e){
-    	console.log(e);
+    	// console.log(e);
+
 		var nT = gpuCompute.createTexture();
-		console.log(e.target.parentElement.getAttribute("pindex"));
+
 		subtractNodeTexture(nT,parseInt(e.target.parentElement.getAttribute("pindex")));
 		velocityUniforms.normals.value = nT;
 		pUniforms.normals.value = nT;
 		velocityUniforms.u_noffset.value = 1.0;
+
+		interactionCount[e.target.parentElement.getAttribute("category")][e.target.parentElement.getAttribute("tag")][1] += 1;
 
     	document.getElementById("info-area").removeChild(e.target.parentElement);
     }
@@ -941,6 +1011,7 @@ function ScanDistort(name){
 		addData: addData,
 		dataAdded: dataAdded,
 		init: init,
+		reset: reset,
 		initMesh: initMesh,
 		animate: animate,
 		render: render,
