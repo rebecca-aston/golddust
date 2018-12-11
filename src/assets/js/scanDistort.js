@@ -19,6 +19,7 @@ function ScanDistort(name){
   	var scanMesh, points; // points will serve as having the original 
   	var navElement, baseHUD;
   	var dataArray,bucketSize;
+  	var orderedList = [];
   	var tags = {
 	  value:{
 	    social:[],
@@ -150,7 +151,7 @@ function ScanDistort(name){
 		var theArray = texture.image.data;
 		var normalAttribute = scanMesh.geometry.getAttribute("normal");
 		var magAttribute = scanMesh.geometry.getAttribute("magnitude");
-		var indices = scanMesh.geometry.index.array;
+		// var indices = scanMesh.geometry.index.array;
 
 		var c = 0;//count for different item size of source array i.e. vec3 
 		for ( var k = 0; k < theArray.length; k += 4 ) { 
@@ -160,7 +161,7 @@ function ScanDistort(name){
 		    theArray[ k + 1 ] = normalAttribute.array[c+1];
 		    theArray[ k + 2 ] = normalAttribute.array[c+2];
 
-		   	theArray[ k + 3 ] = 0.2;
+		   	theArray[ k + 3 ] = 0;
 		    
 		    c+=3;
 
@@ -182,17 +183,18 @@ function ScanDistort(name){
 		// the indice will represent the j *4+3
 		// for every three indices apply the same ammount ? or try this other way first
 
-
+		// tags[category][tag].length
 		for(var i = 0; i < tags[category][tag].length; i++){
 			var pIndex = tags[category][tag][i].pIndex;
 			var min = pIndex - Math.floor(bucketSize/2);
 			var max = pIndex + Math.floor(bucketSize/2);
 			for(var j = min; j < max; j++){
-				var a = indices[j]*4;
+				// var a = indices[j]*4;
+				var a = orderedList[j]*4;
 				if(j <= pIndex){
-					theArray[a+3] = (j - min) * (2 - 1) / (pIndex - min) + 1;
+					theArray[a+3] = (j - min) * (1.5 - 0.4) / (pIndex - min) + 0.4;
 				}else{
-					theArray[a+3] = (j - pIndex) * (1 - 2) / (max - pIndex) + 2;
+					theArray[a+3] = (j - pIndex) * (0.4 - 1.5) / (max - pIndex) + 1.5;
 				}
 			}
 		}
@@ -344,19 +346,36 @@ function ScanDistort(name){
     	return scanMesh;
     }
 
-  //   function roughSpatialSort(){
-  //   	var positions = scanMesh.getAttribute("position").array;
-  //   	var firstPoint = new THREE.Vector3(positions[0],positions[1],positions[2]);
-		// var indices = scanMesh.index.array;
-		// var ordered
+    function roughSpatialSort(){
+		
+    	var positions = scanMesh.geometry.getAttribute("position").array;
+    	var firstPoint = new THREE.Vector3(positions[0],positions[1],positions[2]);
+		var unorderedList = [];//This will just be objects with distance and original index (will then remove and just store index for speed of lookup)
+		for(var i = 0; i < scanMesh.geometry.getAttribute("position").count; i++){
+			var o = {dist:0,index:i};
+			var v3 = new THREE.Vector3(positions[i],positions[i+1],positions[i+2]);
+			o.dist = v3.distanceToSquared(firstPoint);
+			unorderedList.push(o);
+		}
 
+		unorderedList.sort(function(obj1, obj2) {
+			if(obj1.dist > obj2.dist){
+				return 1;
+			}else{
+				return -1;
+			}
+		});
 
-  //   }
+		for(var i = 0; i < unorderedList.length;i++){
+			orderedList.push(unorderedList[i].index);
+		}
+
+    }
 
     //for now just called on the cannon
     function createDataBuckets(){
     	// var pL = scanMesh.geometry.getAttribute("position").count;
-    	var pL = scanMesh.geometry.index.array.length;
+    	var pL = orderedList.length;
     	var dL = dataArray.length;
     	bucketSize = Math.floor(pL/dL);
    		var pIndex = (bucketSize%2!=0)?Math.round(bucketSize/2):bucketSize/2;
@@ -364,7 +383,6 @@ function ScanDistort(name){
    		for(var i = 0; i < dL;i++){
    			dataArray[i]["pIndex"] = bucketSize*i+pIndex; 
    		}
-   		console.log(pL);
     }
 
     function sortDataTags(){
@@ -386,6 +404,8 @@ function ScanDistort(name){
     	dataArray = d;
     	
    		sortDataTags();
+
+   		roughSpatialSort();
 
     	createDataBuckets();
     }
