@@ -161,7 +161,7 @@ nav a.active{
 
 .button-panel{
   position: absolute;
-  right: 10px;
+  right: 3%;
   bottom:55px;
 }
 .button-panel div{
@@ -361,7 +361,7 @@ nav a.active{
 }
 .centered{
   width:60%;
-  margin:10% auto 150px auto;
+  margin:60px auto 150px auto;
   text-align: left;
 }
 

@@ -681,7 +681,7 @@ function ScanDistort(name){
 	        controls = new THREE.OrbitControls( camera, renderer.domElement );
 	        mouse = new THREE.Vector2();
 	        controls.minDistance = 10;
-			controls.maxDistance = 500;
+			controls.maxDistance = 300;
 	    
 	        // document.addEventListener( 'touchstart', onDocumentTouchStart, false );
 	        // document.addEventListener( 'touchmove', onDocumentTouchMove, false );
