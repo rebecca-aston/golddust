@@ -23,7 +23,7 @@ function getBasicPointShader(){
             vec3 newPosition = position;
 
             vec4 mvPosition = modelViewMatrix * vec4( newPosition, 1.0 );
-            gl_PointSize = 3.0 * ( 150.0 / -mvPosition.z );
+            gl_PointSize = 3.0 * ( 80.0 / -mvPosition.z );
             gl_Position = projectionMatrix * mvPosition;
 
           }

@@ -337,7 +337,7 @@ nav a.active{
 }
 .centered{
   width:60%;
-  margin:50px auto 150px auto;
+  margin:10% auto 150px auto;
   text-align: left;
 }
 
@@ -368,7 +368,7 @@ body #word{
   bottom:0;
 }
 .third-view .centered{
-  margin-top:280px;
+  margin-top:300px;
 }
 
 body #shape{

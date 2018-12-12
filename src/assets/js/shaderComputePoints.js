@@ -54,7 +54,7 @@ function getComputePointShader(){
 
           vUv = uv;
 
-          gl_PointSize = abs(mag) * 2.0 + ( 3.0 * 100.0) / -mvPosition.z ; //* ( 150.0 / -mvPosition.z );
+          gl_PointSize = abs(mag) * 2.0 + ( 3.0 * 80.0) / -mvPosition.z ; //* ( 150.0 / -mvPosition.z );
           gl_Position = projectionMatrix * mvPosition;
 
         }
