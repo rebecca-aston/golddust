@@ -689,12 +689,15 @@ function ScanDistort(name){
 
 	        var downloadButton = document.getElementById("download-button");
   			var navButton = document.getElementById("nav-button");
+  			var rButton =  document.getElementById("refresh-button");
 			navElement = document.getElementById("side-panel");
 
 	        window.addEventListener( 'resize', onWindowResize, false );
 	        document.addEventListener( 'mousemove', onDocumentMouseMove, false );
 	        navButton.addEventListener( 'click', onClicked, false);
 	        downloadButton.addEventListener( 'click', download, false);
+	        rButton.addEventListener( 'click', reset, false);
+
 
 
 	        initMesh(baseGeometry);

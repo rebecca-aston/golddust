@@ -148,8 +148,8 @@ nav a.active{
 
 .round-button{
   position: absolute;
-  width: 40px;
-  height: 40px;
+  width: 35px;
+  height: 35px;
   margin: 20px;
   bottom: 30px;
   background-color: #ffffffe6;
@@ -157,6 +157,30 @@ nav a.active{
   z-index: 20;
   border-radius: 50%;
   cursor: pointer;
+}
+
+.button-panel{
+  position: absolute;
+  right: 10px;
+  bottom:55px;
+}
+.button-panel div{
+  text-decoration: none;
+  color:#333;
+  display: inline-block;
+  cursor: pointer;
+  border: solid 1px #333;
+  font-size: 1.2rem;
+  border-radius: 10px;
+  margin: 0px 5px;
+  padding: .1em .8em .2em .8em;
+  background-color: #ffffffe6;
+  z-index: 10;
+  position: relative;
+}
+.button-panel div:hover{
+  border:solid 1px #a78d00;
+  color: #a78d00;
 }
 .round-button:hover{
   background-color: #a78d00;
@@ -166,7 +190,7 @@ nav a.active{
 }
 
 #nav-button{
-  left: -80px;
+  left: -70px;
 }
 
 #nav-button:before{
@@ -180,7 +204,7 @@ nav a.active{
   border-radius: 15%;
   transform: rotate(-45deg);
 }
-#download-button:before{
+#download-button.round-button:before{
   content: " ";
   position: absolute;
   display: block;
@@ -192,7 +216,7 @@ nav a.active{
   border-radius: 15%;
   transform: rotate(225deg);
 }
-#download-button:after{
+#download-button.round-button:after{
   content: " ";
   position: absolute;
   display: block;
@@ -204,8 +228,8 @@ nav a.active{
   border-radius: 15%;
   transform: rotate(225deg);
 }
-#download-button:hover:before,
-#download-button:hover:after,
+#download-button.round-button:hover:before,
+#download-button.round-button:hover:after,
 #nav-button:hover:before{
   content: " ";
   border-left: solid 3px #f7f7f7;
@@ -523,6 +547,7 @@ body[state="flow"] #sketch canvas{
   #side-panel.open #nav-button{
     left: 0px;
   }
+  .button-panel,
   #download-button{
     display: none;
   }
