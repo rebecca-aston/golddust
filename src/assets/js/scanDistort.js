@@ -16,6 +16,7 @@ function ScanDistort(name){
   	var dtNormal, dtPosition;
 
   	var scanUniforms,pUniforms;
+  	var originalPositions = [];
   	var scanMesh, points; // points will serve as having the original 
   	var navElement, baseHUD;
   	var dataArray,bucketSize;
@@ -90,16 +91,16 @@ function ScanDistort(name){
 	function fillPositionTexture( texture ) {
 
 		var theArray = texture.image.data;
-		var posAttribute = points.geometry.getAttribute("position");
+		// var posAttribute = baseGeometry.getAttribute("position");
 
 		var i = 0;//count for different item size of source array i.e. vec3 
 		for ( var k = 0, kl = theArray.length; k < kl; k += 4 ) { 
 
 
-		  if(i < posAttribute.array.length){ 
-		    theArray[ k  ] = posAttribute.array[i];
-		    theArray[ k + 1 ] = posAttribute.array[i+1];
-		    theArray[ k + 2 ] = posAttribute.array[i+2];
+		  if(i < originalPositions.length){ 
+		    theArray[ k  ] = originalPositions[i];
+		    theArray[ k + 1 ] = originalPositions[i+1];
+		    theArray[ k + 2 ] = originalPositions[i+2];
 		    theArray[ k + 3 ] = 1;
 
 		    i+=3;
@@ -306,6 +307,12 @@ function ScanDistort(name){
 		  references.array[ v * 2 + 1 ] = y;
 
 		  magnitudes.array[v] = 0;
+
+		  originalPositions.push(positions.array[v*3]);
+		  originalPositions.push(positions.array[v*3+1]);
+		  originalPositions.push(positions.array[v*3+2]);
+
+
 		}
 
 
@@ -604,7 +611,7 @@ function ScanDistort(name){
 		//Also empty the info area
 
 		// scene.remove(scene.getObjectByName("points"));
-		console.log(scene.getObjectByName("scanMesh"));
+		// console.log(scene.getObjectByName("scanMesh"));
 		scene.remove(scene.getObjectByName("scanMesh"));
 
 		document.getElementById("info-area").innerHTML = "";
