@@ -592,6 +592,8 @@ function ScanDistort(name){
     }
 
     function reset(){
+		activeRender = false;
+
 		for(category in interactionCount){
 			for(tag in interactionCount[category]){
 				interactionCount[category][tag][0] = 0;
@@ -599,11 +601,24 @@ function ScanDistort(name){
 			}
 		}
 
+		//Also empty the info area
+
 		// scene.remove(scene.getObjectByName("points"));
+		console.log(scene.getObjectByName("scanMesh"));
 		scene.remove(scene.getObjectByName("scanMesh"));
-		// initComputeRenderer(); //This needs work
+
+		document.getElementById("info-area").innerHTML = "";
+		document.querySelectorAll(".hud .hud-bttn").forEach(function(e){
+			e.classList.remove("active");
+		});
+
+		gpuCompute = {};
+		initComputeRenderer(); //This needs work
 
 		//!!!!
+
+		activeRender = true;
+	    animate();
     }
 
 	function init(container,baseGeometry) {
